@@ -151,17 +151,13 @@ function legacy_rocket(input_file)
   !! a thrust coefficient and ignoring the complexities of
   !! what happens to thrust at low pressures, i.e. shock in the nozzle
 
-use assertions_interface, only : assert, max_errmsg_len
-use results_interface, only : results_t
 use mod1
 implicit none
 
 character(len=*), intent(in) :: input_file
-type(results_t) legacy_rocket
+real(dp), allocatable :: legacy_rocket(:,:)
 
-character(len=max_errmsg_len) error_message
-integer io_status, file_unit
-integer, parameter :: success = 0
+integer file_unit
 
 real(dp) dt_, t_max_
 real(dp) c_p_, MW_
@@ -177,8 +173,7 @@ namelist/combustion_list/ T_flame_, r_ref_, n_
 namelist/grain_list/ id_, od_, length_, rho_solid_
 namelist/nozzle_list/ dia_, C_f_
 
-open(newunit=file_unit, file=input_file, status="old", iostat=io_status, iomsg=error_message)
-call assert(io_status == success, "legcy_rocket: io_status == success", error_message)
+open(newunit=file_unit, file=input_file, status="old")
 
 read(file_unit, nml=numerics_list)
 dt   = dt_
@@ -257,11 +252,6 @@ close(file_unit)
 
   enddo
 
-  block
-    character(len=*), parameter :: header(*) = [ character(len=len("temperatureLegacy)")) :: &
-      "timeLegacy", "pressureLegacy", "temperatureLegacy", "mdotosLegacy", "thrustLegacy", "volumeLegacy",&
-      "Accelertion","velociity", "altitude"]
-    legacy_rocket = results_t(header, output)
-  end block
+  legacy_rocket = output
 
 end function legacy_rocket
