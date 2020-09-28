@@ -38,7 +38,7 @@ integer i
   nsteps=nint(tmax/dt) ! number of time steps
 
 ! preallocate an output file for simulation infomration
-  allocate(output(nsteps,4))
+  allocate(output(nsteps,7))
   output=0d0 ! initialize to zero
 
   thrust=0d0
@@ -61,6 +61,14 @@ integer i
   echam=mcham*cv*t
   time=0d0
 
+! initialize trajectory
+  accel=0d0
+  vel=0d0
+  altitude=0d0
+  rocketmass=0d0
+  gravity=9.81d0
+  call propwt
+
   do i=1,nsteps
 
    call calmdotgen
@@ -70,12 +78,18 @@ integer i
    call calct
    call calcp
    call calcthrust
-   output(i,:)=[time,p,t,thrust]
+   call height
+   output(i,:)=[time,p,t,thrust,accel,vel,altitude]
    time=time+dt
   enddo
 
   end program
 
+  subroutine propwt
+  use mod1
+  propmass=pi/4*(id**2-od**2)*length*rhos
+  rocketmass=0.15*propmass ! assume 85% propellant loading and 15% extra wt of rocket
+  end subroutine
 
   subroutine calmdotgen
   use mod1
@@ -168,4 +182,12 @@ integer i
 
   subroutine calcthrust
     thrust=mdotos*area*cf
+  end subroutine
+
+  subroutine height
+    use mod1
+    propmass=propmass+mdotos*dt ! incremental change in propellant mass
+    accel=thrust/(propmass+rocketmass)-gravity
+    vel=vel+accel*dt
+    altitude=altitude+vel*dt
   end subroutine
