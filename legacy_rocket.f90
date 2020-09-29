@@ -15,7 +15,7 @@ real(dp):: cp,cv,g,rgas,mw,vol=one,dia,cf,id,od,length,rref,rhos,psipa,pref
 real(dp):: db=zero,dt,tmax,Tflame
 real(dp):: thrust=zero, area, r, n, surf,mdotgen,mdotout,edotgen,edotout,energy
 real(dp):: mdotos=zero, edotos, texit, dsigng,pamb,p,t
-real(dp):: mcham,echam,time=zero,propmass=zero,drag=zero
+real(dp):: mcham,echam,time=zero,propmass=zero,drag=zero,netthrust=zero
 integer nsteps,i
 real(dp):: accel=zero, vel=zero, altitude=zero, rocketmass=zero
 real(dp), allocatable :: output(:,:)
@@ -42,7 +42,7 @@ subroutine calcsurf
   use mod1
   implicit none
 
-  surf=pi*(id+2.0d0*db)*(length-2.0d0*db)+0.5d0*pi*(od**2.0d0-(id+2.0*db)**2.0d0)
+  surf=pi*(id+2.0d0*db)*(length-2.0d0*db)+pi*(od**2.0d0-(id+2.0*db)**2.0d0)*0.5
 
   if(id+2d0*db.gt.od.or.db.gt.length/2d0) THEN
      surf=0d0  ! we hit the wall and burned out
@@ -135,14 +135,14 @@ subroutine calcthrust
     den=rhob*exp(-gravity*mwair*altitude/RU/tamb)
     drag=-cd*0.5*den*vel*abs(vel)*surfrocket
 
-    thrust=thrust+drag
+    netthrust=thrust+drag
 end subroutine
 
 subroutine height
   use mod1
   implicit none
   propmass=propmass-mdotgen*dt ! incremental change in propellant mass
-  accel=thrust/(propmass+rocketmass+mcham)-gravity
+  accel=netthrust/(propmass+rocketmass+mcham)-gravity
   vel=vel+accel*dt
   altitude=altitude+vel*dt
 end subroutine
@@ -224,7 +224,7 @@ close(file_unit)
   nsteps=nint(tmax/dt) ! number of time steps
 
 ! preallocate an output file for simulation infomration
-  allocate(output(0:nsteps,9))
+  allocate(output(1:nsteps,11))
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!11
 
@@ -242,8 +242,6 @@ close(file_unit)
   mcham=p*vol/rgas/t  ! use ideal gas law to determine mass in chamber
   echam=mcham*cv*t ! initial internal energy in chamber
 
-  output(0,:)=[time,p,t,mdotos,thrust,vol, accel, vel, altitude]
-  output(0,:)=0.0
   call propwt
   do i=1,nsteps
    call burnrate
@@ -256,7 +254,7 @@ close(file_unit)
    call calcthrust
    call height
    time=time+dt
-   output(i,:)=[time,p,t,mdotos,thrust,vol,accel,vel,altitude]
+   output(i,:)=[time,p,t,mdotos,thrust,drag,netthrust,vol,accel,vel,altitude]
 
   enddo
 
@@ -280,7 +278,7 @@ program main
   real(dp), allocatable :: output(:,:)
 
   output = legacy_rocket("rocket.inp")
-  do i = 0, size(output, 1)
-      print *, output(i,:)
+  do i = 1, size(output, 1)
+      print'(11e15.6,1x)', output(i,:)
   end do
 end program
