@@ -81,7 +81,7 @@ if(HAVE_ERROR_STOP_IN_PURE)
   add_definitions(-DHAVE_ERROR_STOP_IN_PURE)
 endif()
 
-foreach(directory src app)
+foreach(directory src app submodules)
   add_subdirectory("${directory}")
 endforeach()
 
