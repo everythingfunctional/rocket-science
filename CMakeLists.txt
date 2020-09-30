@@ -86,3 +86,8 @@ foreach(directory src app)
 endforeach()
 
 enable_testing()
+
+add_test( NAME "generate_graphs"
+  COMMAND ${CMAKE_BINARY_DIR}/app/generate_graphs.sh
+  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/app
+)
