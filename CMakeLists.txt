@@ -93,7 +93,7 @@ add_test( NAME "generate_graphs"
 )
 
 foreach(integration_test
-  refurbished
+  refurbished-integration
 )
   add_test( NAME "${integration_test}"
     COMMAND ${CMAKE_BINARY_DIR}/integration_tests/${integration_test}/test-${integration_test}
@@ -104,7 +104,7 @@ foreach(integration_test
 endforeach()
 
 foreach(unit_test
-  refurbished
+  refurbished-unit
 )
   add_test( NAME "${unit_test}"
     COMMAND ${CMAKE_BINARY_DIR}/unit_tests/${unit_test}/test-${unit_test}
