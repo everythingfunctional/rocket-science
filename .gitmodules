@@ -1,0 +1,9 @@
+[submodule "submodules/vegetables"]
+	path = submodules/vegetables
+	url = https://gitlab.com/everythingfunctional/vegetables.git
+[submodule "submodules/strff"]
+	path = submodules/strff
+	url = https://gitlab.com/everythingfunctional/strff.git
+[submodule "submodules/iso_varying_string"]
+	path = submodules/iso_varying_string
+	url = https://gitlab.com/everythingfunctional/iso_varying_string.git
