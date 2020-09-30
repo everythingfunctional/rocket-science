@@ -1,25 +1,71 @@
 module refurbished_mod1
   implicit none
 
-  integer, parameter :: precision = 15, range = 307
+  integer, parameter :: precision = 15
+  integer, parameter :: range = 307
   integer, parameter :: dp = selected_real_kind(precision, range)
   real(dp), parameter :: gravity = 9.81d0
   real(dp), parameter :: pi = 3.1415926539
   real(dp), parameter :: RU = 8314d0
-  real(dp), parameter :: zero = 0._dp, one = 1._dp
-  real(dp), parameter :: cd = 1.1, rhob = 1.225, tamb = 300d0
-  real(dp), parameter :: mwair = 28.96, surfrocket = pi/4
+  real(dp), parameter :: zero = 0._dp
+  real(dp), parameter :: one = 1._dp
+  real(dp), parameter :: cd = 1.1
+  real(dp), parameter :: rhob = 1.225
+  real(dp), parameter :: tamb = 300d0
+  real(dp), parameter :: mwair = 28.96
+  real(dp), parameter :: surfrocket = pi/4
   ! assuminng a 1.1 drag coefficient and
 
-  real(dp) :: cp, cv, g, rgas, mw, vol = one, dia, cf, id, od, length, rref, rhos, psipa, pref
-  real(dp) :: db = zero, dt, tmax, Tflame
-  real(dp) :: thrust = zero, area, r, n, surf, mdotgen, mdotout, edotgen, edotout, energy
-  real(dp) :: mdotos = zero, edotos, texit, dsigng, pamb, p, t
-  real(dp) :: mcham, echam, time = zero, propmass = zero, drag = zero, netthrust = zero
-  integer nsteps, i
-  real(dp) :: accel = zero, vel = zero, altitude = zero, rocketmass = zero
+  real(dp) :: cp
+  real(dp) :: cv
+  real(dp) :: g
+  real(dp) :: rgas
+  real(dp) :: mw
+  real(dp) :: vol = one
+  real(dp) :: dia
+  real(dp) :: cf
+  real(dp) :: id
+  real(dp) :: od
+  real(dp) :: length
+  real(dp) :: rref
+  real(dp) :: rhos
+  real(dp) :: psipa
+  real(dp) :: pref
+  real(dp) :: db = zero
+  real(dp) :: dt
+  real(dp) :: tmax
+  real(dp) :: Tflame
+  real(dp) :: thrust = zero
+  real(dp) :: area
+  real(dp) :: r
+  real(dp) :: n
+  real(dp) :: surf
+  real(dp) :: mdotgen
+  real(dp) :: mdotout
+  real(dp) :: edotgen
+  real(dp) :: edotout
+  real(dp) :: energy
+  real(dp) :: mdotos = zero
+  real(dp) :: edotos
+  real(dp) :: texit
+  real(dp) :: dsigng
+  real(dp) :: pamb
+  real(dp) :: p
+  real(dp) :: t
+  real(dp) :: mcham
+  real(dp) :: echam
+  real(dp) :: time = zero
+  real(dp) :: propmass = zero
+  real(dp) :: drag = zero
+  real(dp) :: netthrust = zero
+  integer :: nsteps
+  integer :: i
+  real(dp) :: accel = zero
+  real(dp) :: vel = zero
+  real(dp) :: altitude = zero
+  real(dp) :: rocketmass = zero
   real(dp), allocatable :: output(:,:)
-  real(dp) den ! air density
+  real(dp) :: den ! air density
 end module
 
 module refurbished
@@ -68,9 +114,23 @@ contains
     USE refurbished_mod1
     implicit none
 
-    REAL(8) :: mdtx, engyx
-    REAL(8) :: tx, gx, rx, px, cpx, pcrit, facx, term1, term2, pratio, cstar, ax, hx
-    REAL(8) :: p1, p2
+    REAL(8) :: mdtx
+    REAL(8) :: engyx
+    REAL(8) :: tx
+    REAL(8) :: gx
+    REAL(8) :: rx
+    REAL(8) :: px
+    REAL(8) :: cpx
+    REAL(8) :: pcrit
+    REAL(8) :: facx
+    REAL(8) :: term1
+    REAL(8) :: term2
+    REAL(8) :: pratio
+    REAL(8) :: cstar
+    REAL(8) :: ax
+    REAL(8) :: hx
+    REAL(8) :: p1
+    REAL(8) :: p2
 
     mdotos = 0.
     edotos = 0. ! initially set them to zero prior to running this loop
@@ -181,12 +241,21 @@ contains
     use refurbished_mod1
     implicit none
 
-    real(dp), intent(in) :: dt_, t_max_
-    real(dp), intent(in) :: c_p_, MW_
-    real(dp), intent(in) :: temperature_, pressure_
-    real(dp), intent(in) :: T_flame_, r_ref_, n_
-    real(dp), intent(in) :: id_, od_, length_, rho_solid_
-    real(dp), intent(in) :: dia_, C_f_
+    real(dp), intent(in) :: dt_
+    real(dp), intent(in) :: t_max_
+    real(dp), intent(in) :: c_p_
+    real(dp), intent(in) :: MW_
+    real(dp), intent(in) :: temperature_
+    real(dp), intent(in) :: pressure_
+    real(dp), intent(in) :: T_flame_
+    real(dp), intent(in) :: r_ref_
+    real(dp), intent(in) :: n_
+    real(dp), intent(in) :: id_
+    real(dp), intent(in) :: od_
+    real(dp), intent(in) :: length_
+    real(dp), intent(in) :: rho_solid_
+    real(dp), intent(in) :: dia_
+    real(dp), intent(in) :: C_f_
     real(dp), allocatable :: rocket(:,:)
 
     dt = dt_
