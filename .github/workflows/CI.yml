@@ -9,18 +9,14 @@ jobs:
 
     env:
       FC: gfortran
-      GCC_V: 9
 
     steps:
     - name: Checkout code
       uses: actions/checkout@v1
 
 
-    - name: Install GFortran Linux
-      run: |
-        sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-${GCC_V} 100 \
-        --slave /usr/bin/gfortran gfortran /usr/bin/gfortran-${GCC_V} \
-        --slave /usr/bingcov gcov /usr/bin/gcov-${GCC_V}
+    - name: Install gnuplot
+      run: sudo apt install -y gnuplot
 
     - name: Get Time
       id: time
