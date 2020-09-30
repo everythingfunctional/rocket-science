@@ -75,7 +75,6 @@ contains
   subroutine propwt ! calculate weight of propellent
     use refurbished_mod1, only: &
         dp, id, length, od, pi, propmass, rocketmass, rhos
-    implicit none
 
     propmass = pi / 4.0_dp * (od**2 - id**2) * length * rhos
     rocketmass = 0.15_dp * propmass ! assume 85% propellant loading and 15% extra wt of rocket
@@ -83,7 +82,6 @@ contains
 
   subroutine burnrate
     use refurbished_mod1, only: db, dt, n, p, pref, r, rref
-    implicit none
 
     r = rref * (p/pref)**n ! calculate burn rate
     db = db + r*dt ! calculate incremental burn distance
@@ -92,7 +90,6 @@ contains
   subroutine calcsurf
     ! cylinder burning from id outward and from both ends along the length
     use refurbished_mod1, only: db, dp, dt, id, length, od, pi, r, surf, vol
-    implicit none
 
     surf = pi * (id + 2.0_dp*db) * (length - 2.0_dp*db) + pi * (od**2 - (id + 2.0_dp*db)**2) * 0.5_dp
 
@@ -106,7 +103,6 @@ contains
 
   subroutine calmdotgen
     use refurbished_mod1, only: cp, edotgen, mdotgen, r, rhos, surf, Tflame
-    implicit none
 
     mdotgen = rhos * r * surf
     edotgen = mdotgen * cp * Tflame
@@ -115,7 +111,6 @@ contains
   subroutine massflow
     use refurbished_mod1, only: &
         area, cp, dp, dsigng, edotos, g, mdotos, p, pamb, rgas, t, tamb
-    implicit none
 
     real(dp) :: ax
     real(dp) :: cpx
@@ -181,7 +176,6 @@ contains
   subroutine addmass
     use refurbished_mod1, only: &
         dt, echam, edotgen, edotos, mcham, mdotgen, mdotos
-    implicit none
 
     mcham = mcham + (mdotgen - mdotos) * dt
     echam = echam + (edotgen - edotos) * dt
@@ -189,14 +183,12 @@ contains
 
   subroutine calct
     use refurbished_mod1, only: cv, echam, mcham, t
-    implicit none
 
     t = echam / mcham / cv
   end subroutine
 
   subroutine calcp
     use refurbished_mod1, only: mcham, p, rgas, t, vol
-    implicit none
 
     p = mcham * rgas * t / vol
   end subroutine
@@ -221,7 +213,6 @@ contains
         tamb, &
         thrust, &
         vel
-    implicit none
 
     thrust = (p - pamb) * area * cf ! correction to thrust (actual vs vacuum thrust)
     den = rhob * exp(-gravity * mwair * altitude / RU / tamb)
@@ -241,7 +232,6 @@ contains
         propmass, &
         rocketmass, &
         vel
-    implicit none
 
     propmass = propmass - mdotgen*dt ! incremental change in propellant mass
     accel = netthrust / (propmass + rocketmass + mcham) - gravity
@@ -310,7 +300,6 @@ contains
         tmax, &
         vel, &
         vol
-    implicit none
 
     real(dp), intent(in) :: dt_
     real(dp), intent(in) :: t_max_
