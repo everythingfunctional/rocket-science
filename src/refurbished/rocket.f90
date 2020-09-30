@@ -1,6 +1,6 @@
 module refurbished_mod1
   implicit none
-  save
+
   integer, parameter :: precision = 15, range = 307
   integer, parameter :: dp = selected_real_kind(precision, range)
   real(dp), parameter :: gravity = 9.81d0
@@ -28,14 +28,15 @@ contains
   subroutine propwt ! calculate weight of propellent
     use refurbished_mod1
     implicit none
+
     propmass = pi / 4 * (od**2 - id**2) * length * rhos
     rocketmass = 0.15 * propmass ! assume 85% propellant loading and 15% extra wt of rocket
   end subroutine
 
-
   subroutine burnrate
     use refurbished_mod1
     implicit none
+
     r = rref * (p/pref)**n ! calculate burn rate
     db = db + r*dt ! calculate incremental burn distance
   end subroutine
@@ -58,6 +59,7 @@ contains
   subroutine calmdotgen
     use refurbished_mod1
     implicit none
+
     mdotgen = rhos * r * surf
     edotgen = mdotgen * cp * Tflame
   end subroutine
@@ -65,6 +67,7 @@ contains
   subroutine massflow
     USE refurbished_mod1
     implicit none
+
     REAL(8) :: mdtx, engyx
     REAL(8) :: tx, gx, rx, px, cpx, pcrit, facx, term1, term2, pratio, cstar, ax, hx
     REAL(8) :: p1, p2
@@ -115,6 +118,7 @@ contains
   subroutine addmass
     use refurbished_mod1
     implicit none
+
     mcham = mcham + (mdotgen - mdotos) * dt
     echam = echam + (edotgen - edotos) * dt
   end subroutine
@@ -122,38 +126,36 @@ contains
   subroutine calct
     use refurbished_mod1
     implicit none
+
     t = echam / mcham / cv
   end subroutine
 
   subroutine calcp
     use refurbished_mod1
     implicit none
+
     p = mcham * rgas * t / vol
   end subroutine
 
   subroutine calcthrust
     use refurbished_mod1
     implicit none
+
     thrust = (p - pamb) * area * cf ! correction to thrust (actual vs vacuum thrust)
     den = rhob * exp(-gravity * mwair * altitude / RU / tamb)
     drag = -cd * 0.5 * den * vel * abs(vel) * surfrocket
-
     netthrust=thrust+drag
   end subroutine
 
   subroutine height
     use refurbished_mod1
     implicit none
+
     propmass = propmass - mdotgen*dt ! incremental change in propellant mass
     accel = netthrust / (propmass + rocketmass + mcham) - gravity
     vel = vel + accel*dt
     altitude = altitude + vel*dt
   end subroutine
-
-
-
-  !!  Main program
-
 
   function rocket( &
       dt_, &
@@ -203,7 +205,6 @@ contains
     dia = dia_
     cf = C_f_
 
-
     ! propellent grain is a cylinder burning radially outward and axially inward from one end.
     ! the other end is considered inhibited.
     ! outer diameter is inhibited because this is a cast propellent: it was poured
@@ -230,8 +231,8 @@ contains
 
     pamb = 101325d0 ! atmospheric pressure
 
-    !  calculate initial mass and energy in the chamber
-    mcham = p * vol / rgas / t  ! use ideal gas law to determine mass in chamber
+    ! calculate initial mass and energy in the chamber
+    mcham = p * vol / rgas / t ! use ideal gas law to determine mass in chamber
     echam = mcham * cv * t ! initial internal energy in chamber
 
     output(0,:) = [time, p, t, mdotos, thrust, drag, netthrust, vol, accel, vel, altitude]
@@ -249,10 +250,7 @@ contains
       call height
       time = time + dt
       output(i,:) = [time, p, t, mdotos, thrust, drag, netthrust, vol, accel, vel, altitude]
-
-    enddo
-
+    end do
     rocket = output
-
   end function
 end module
