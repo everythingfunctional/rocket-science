@@ -81,7 +81,7 @@ if(HAVE_ERROR_STOP_IN_PURE)
   add_definitions(-DHAVE_ERROR_STOP_IN_PURE)
 endif()
 
-foreach(directory src app submodules)
+foreach(directory src app submodules integration_tests)
   add_subdirectory("${directory}")
 endforeach()
 
@@ -91,3 +91,14 @@ add_test( NAME "generate_graphs"
   COMMAND ${CMAKE_BINARY_DIR}/app/generate_graphs.sh
   WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/app
 )
+
+foreach(integration_test
+  refurbished
+)
+  add_test( NAME "${integration_test}"
+    COMMAND ${CMAKE_BINARY_DIR}/integration_tests/${integration_test}/test-${integration_test}
+  )
+  set_tests_properties(${integration_test}
+     PROPERTIES PASS_REGULAR_EXPRESSION "All Passed."
+  )
+endforeach()
