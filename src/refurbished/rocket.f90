@@ -95,10 +95,10 @@ contains
 
     surf = pi * (id + 2.0_dp*db) * (length - 2.0_dp*db) + pi * (od**2 - (id + 2.0_dp*db)**2) * 0.5_dp
 
-    if (id + 2.0_dp*db .gt. od .or. db.gt.length/2.0_dp) THEN
+    if (id + 2.0_dp*db .gt. od .or. db.gt.length/2.0_dp) then
       surf = 0.0_dp ! we hit the wall and burned out
       r = 0.0_dp ! turn off burn rate so burn distance stops increasing
-    endif
+    end if
 
     vol = vol + r*surf*dt ! increment the interior volume of the chamber a little
   end subroutine
@@ -112,7 +112,7 @@ contains
   end subroutine
 
   subroutine massflow
-    USE refurbished_mod1
+    use refurbished_mod1
     implicit none
 
     real(dp) :: ax
@@ -139,7 +139,7 @@ contains
     p1 = p
     p2 = pamb
     ax = area
-    IF (p1.GT.p2) THEN
+    if (p1.GT.p2) then
       dsigng = 1.0_dp
       tx = t
       gx = g
@@ -160,16 +160,16 @@ contains
     end if
 
     pcrit = (2.0_dp / (gx + 1.0_dp))**(gx / (gx - 1.0_dp))
-    IF ((1.0_dp / pratio) .LT. pcrit) then
+    if ((1.0_dp / pratio) .LT. pcrit) then
       ! choked flow
       cstar = sqrt((1.0_dp / gx) * ((gx + 1.0_dp) / 2.0_dp)**((gx + 1.0_dp) / (gx - 1.0_dp)) * rx * tx)
       mdtx= px * ax / cstar
     else
       ! unchoked flow
       facx = pratio**((gx - 1.0_dp) / gx)
-      term1 = SQRT(gx * rx * tx / facx)
-      term2 = SQRT((facx - 1.0_dp) / (gx - 1.0_dp))
-      mdtx = SQRT(2.0_dp) * px / pratio / rx / tx * facx * term1 * term2 * ax
+      term1 = sqrt(gx * rx * tx / facx)
+      term2 = sqrt((facx - 1.0_dp) / (gx - 1.0_dp))
+      mdtx = sqrt(2.0_dp) * px / pratio / rx / tx * facx * term1 * term2 * ax
     end if
     engyx = mdtx * hx  ! reformulate based on enthalpy of the chamber
     mdotos = mdtx * dsigng ! exiting mass flow (could be negative "dsigng")
