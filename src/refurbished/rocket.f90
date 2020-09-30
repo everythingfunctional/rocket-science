@@ -71,18 +71,20 @@ end module
 
 module refurbished
   implicit none
+  private
+
+  public :: rocket
 contains
   subroutine propwt ! calculate weight of propellent
-    use refurbished_mod1
-    implicit none
+    use refurbished_mod1, only: &
+        dp, id, length, od, pi, propmass, rocketmass, rhos
 
     propmass = pi / 4.0_dp * (od**2 - id**2) * length * rhos
     rocketmass = 0.15_dp * propmass ! assume 85% propellant loading and 15% extra wt of rocket
   end subroutine
 
   subroutine burnrate
-    use refurbished_mod1
-    implicit none
+    use refurbished_mod1, only: db, dt, n, p, pref, r, rref
 
     r = rref * (p/pref)**n ! calculate burn rate
     db = db + r*dt ! calculate incremental burn distance
@@ -90,8 +92,7 @@ contains
 
   subroutine calcsurf
     ! cylinder burning from id outward and from both ends along the length
-    use refurbished_mod1
-    implicit none
+    use refurbished_mod1, only: db, dp, dt, id, length, od, pi, r, surf, vol
 
     surf = pi * (id + 2.0_dp*db) * (length - 2.0_dp*db) + pi * (od**2 - (id + 2.0_dp*db)**2) * 0.5_dp
 
@@ -104,16 +105,15 @@ contains
   end subroutine
 
   subroutine calmdotgen
-    use refurbished_mod1
-    implicit none
+    use refurbished_mod1, only: cp, edotgen, mdotgen, r, rhos, surf, Tflame
 
     mdotgen = rhos * r * surf
     edotgen = mdotgen * cp * Tflame
   end subroutine
 
   subroutine massflow
-    use refurbished_mod1
-    implicit none
+    use refurbished_mod1, only: &
+        area, cp, dp, dsigng, edotos, g, mdotos, p, pamb, rgas, t, tamb
 
     real(dp) :: ax
     real(dp) :: cpx
@@ -177,30 +177,45 @@ contains
   end subroutine
 
   subroutine addmass
-    use refurbished_mod1
-    implicit none
+    use refurbished_mod1, only: &
+        dt, echam, edotgen, edotos, mcham, mdotgen, mdotos
 
     mcham = mcham + (mdotgen - mdotos) * dt
     echam = echam + (edotgen - edotos) * dt
   end subroutine
 
   subroutine calct
-    use refurbished_mod1
-    implicit none
+    use refurbished_mod1, only: cv, echam, mcham, t
 
     t = echam / mcham / cv
   end subroutine
 
   subroutine calcp
-    use refurbished_mod1
-    implicit none
+    use refurbished_mod1, only: mcham, p, rgas, t, vol
 
     p = mcham * rgas * t / vol
   end subroutine
 
   subroutine calcthrust
-    use refurbished_mod1
-    implicit none
+    use refurbished_mod1, only: &
+        altitude, &
+        area, &
+        cf, &
+        cd, &
+        den, &
+        dp, &
+        drag, &
+        gravity, &
+        mwair, &
+        netthrust, &
+        p, &
+        pamb, &
+        rhob, &
+        RU, &
+        surfrocket, &
+        tamb, &
+        thrust, &
+        vel
 
     thrust = (p - pamb) * area * cf ! correction to thrust (actual vs vacuum thrust)
     den = rhob * exp(-gravity * mwair * altitude / RU / tamb)
@@ -209,8 +224,17 @@ contains
   end subroutine
 
   subroutine height
-    use refurbished_mod1
-    implicit none
+    use refurbished_mod1, only: &
+        accel, &
+        altitude, &
+        dt, &
+        gravity, &
+        mcham, &
+        mdotgen, &
+        netthrust, &
+        propmass, &
+        rocketmass, &
+        vel
 
     propmass = propmass - mdotgen*dt ! incremental change in propellant mass
     accel = netthrust / (propmass + rocketmass + mcham) - gravity
@@ -239,8 +263,46 @@ contains
     !! a thrust coefficient and ignoring the complexities of
     !! what happens to thrust at low pressures, i.e. shock in the nozzle
 
-    use refurbished_mod1
-    implicit none
+    use refurbished_mod1, only: &
+        accel, &
+        altitude, &
+        area, &
+        cf, &
+        cp, &
+        cv, &
+        dia, &
+        dp, &
+        drag, &
+        dt, &
+        echam, &
+        g, &
+        i, &
+        id, &
+        length, &
+        mcham, &
+        mdotos, &
+        mw, &
+        n, &
+        netthrust, &
+        nsteps, &
+        od, &
+        output, &
+        p, &
+        pamb, &
+        pi, &
+        pref, &
+        psipa, &
+        rgas, &
+        rhos, &
+        rref, &
+        ru, &
+        t, &
+        Tflame, &
+        thrust, &
+        time, &
+        tmax, &
+        vel, &
+        vol
 
     real(dp), intent(in) :: dt_
     real(dp), intent(in) :: t_max_
