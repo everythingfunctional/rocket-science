@@ -1,12 +1,11 @@
 module comparison_test
     use refurbished, only: refurbished_rocket => rocket
-    use Vegetables_m, only: Result_t, TestItem_t, describe, it, succeed
+    use refurbished_mod1, only: dp
+    use results_interface, only: results_t
+    use Vegetables_m, only: Result_t, TestItem_t, assertThat, describe, it
 
     implicit none
     private
-
-    integer, parameter :: precision=15, range=307
-    integer, parameter :: dp = selected_real_kind(precision, range)
 
     interface
       function legacy_rocket( &
@@ -67,10 +66,12 @@ contains
         real(dp), parameter :: dia = 0.4_dp
         real(dp), parameter :: C_f = 1.7_dp
 
-        real(dp), allocatable :: legacy_output(:,:)
-        real(dp), allocatable :: refurbished_output(:,:)
+        real(dp), parameter :: tolerance = 0.01_dp
 
-        legacy_output = legacy_rocket( &
+        type(results_t) :: legacy_output
+        type(results_t) :: refurbished_output
+
+        legacy_output = results_t(legacy_rocket( &
             dt, &
             t_max, &
             c_p, &
@@ -85,8 +86,8 @@ contains
             length, &
             rho_solid, &
             dia, &
-            C_f)
-        refurbished_output = refurbished_rocket( &
+            C_f))
+        refurbished_output = results_t(refurbished_rocket( &
             dt, &
             t_max, &
             c_p, &
@@ -101,8 +102,8 @@ contains
             length, &
             rho_solid, &
             dia, &
-            C_f)
+            C_f))
 
-        result_ = succeed("For now")
+        result_ = assertThat(refurbished_output%max_filtered_normalized_distance(legacy_output) < tolerance)
     end function
 end module
