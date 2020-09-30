@@ -4,68 +4,69 @@ module refurbished_mod1
   integer, parameter :: precision = 15
   integer, parameter :: range = 307
   integer, parameter :: dp = selected_real_kind(precision, range)
-  real(dp), parameter :: gravity = 9.81d0
-  real(dp), parameter :: pi = 3.1415926539
-  real(dp), parameter :: RU = 8314d0
-  real(dp), parameter :: zero = 0._dp
-  real(dp), parameter :: one = 1._dp
-  real(dp), parameter :: cd = 1.1
-  real(dp), parameter :: rhob = 1.225
-  real(dp), parameter :: tamb = 300d0
-  real(dp), parameter :: mwair = 28.96
-  real(dp), parameter :: surfrocket = pi/4
+
+  real(dp), parameter :: cd = 1.1_dp
+  real(dp), parameter :: gravity = 9.81_dp
+  real(dp), parameter :: mwair = 28.96_dp
+  real(dp), parameter :: one = 1.0_dp
+  real(dp), parameter :: pi = 3.1415926539_dp
+  real(dp), parameter :: rhob = 1.225_dp
+  real(dp), parameter :: RU = 8314.0_dp
+  real(dp), parameter :: surfrocket = pi / 4.0_dp
+  real(dp), parameter :: tamb = 300.0_dp
+  real(dp), parameter :: zero = 0.0_dp
   ! assuminng a 1.1 drag coefficient and
 
+  real(dp) :: accel = zero
+  real(dp) :: altitude = zero
+  real(dp) :: area
+  real(dp) :: cf
   real(dp) :: cp
   real(dp) :: cv
-  real(dp) :: g
-  real(dp) :: rgas
-  real(dp) :: mw
-  real(dp) :: vol = one
-  real(dp) :: dia
-  real(dp) :: cf
-  real(dp) :: id
-  real(dp) :: od
-  real(dp) :: length
-  real(dp) :: rref
-  real(dp) :: rhos
-  real(dp) :: psipa
-  real(dp) :: pref
   real(dp) :: db = zero
+  real(dp) :: den ! air density
+  real(dp) :: dia
+  real(dp) :: drag = zero
+  real(dp) :: dsigng
   real(dp) :: dt
-  real(dp) :: tmax
-  real(dp) :: Tflame
-  real(dp) :: thrust = zero
-  real(dp) :: area
-  real(dp) :: r
-  real(dp) :: n
-  real(dp) :: surf
-  real(dp) :: mdotgen
-  real(dp) :: mdotout
+  real(dp) :: echam
   real(dp) :: edotgen
+  real(dp) :: edotos
   real(dp) :: edotout
   real(dp) :: energy
-  real(dp) :: mdotos = zero
-  real(dp) :: edotos
-  real(dp) :: texit
-  real(dp) :: dsigng
-  real(dp) :: pamb
-  real(dp) :: p
-  real(dp) :: t
+  real(dp) :: g
+  integer :: i
+  real(dp) :: id
+  real(dp) :: length
   real(dp) :: mcham
-  real(dp) :: echam
-  real(dp) :: time = zero
-  real(dp) :: propmass = zero
-  real(dp) :: drag = zero
+  real(dp) :: mdotgen
+  real(dp) :: mdotos = zero
+  real(dp) :: mdotout
+  real(dp) :: mw
+  real(dp) :: n
   real(dp) :: netthrust = zero
   integer :: nsteps
-  integer :: i
-  real(dp) :: accel = zero
-  real(dp) :: vel = zero
-  real(dp) :: altitude = zero
-  real(dp) :: rocketmass = zero
+  real(dp) :: od
   real(dp), allocatable :: output(:,:)
-  real(dp) :: den ! air density
+  real(dp) :: p
+  real(dp) :: pamb
+  real(dp) :: pref
+  real(dp) :: propmass = zero
+  real(dp) :: psipa
+  real(dp) :: rgas
+  real(dp) :: r
+  real(dp) :: rhos
+  real(dp) :: rocketmass = zero
+  real(dp) :: rref
+  real(dp) :: surf
+  real(dp) :: t
+  real(dp) :: texit
+  real(dp) :: Tflame
+  real(dp) :: thrust = zero
+  real(dp) :: time = zero
+  real(dp) :: tmax
+  real(dp) :: vol = one
+  real(dp) :: vel = zero
 end module
 
 module refurbished
@@ -75,8 +76,8 @@ contains
     use refurbished_mod1
     implicit none
 
-    propmass = pi / 4 * (od**2 - id**2) * length * rhos
-    rocketmass = 0.15 * propmass ! assume 85% propellant loading and 15% extra wt of rocket
+    propmass = pi / 4.0_dp * (od**2 - id**2) * length * rhos
+    rocketmass = 0.15_dp * propmass ! assume 85% propellant loading and 15% extra wt of rocket
   end subroutine
 
   subroutine burnrate
@@ -92,11 +93,11 @@ contains
     use refurbished_mod1
     implicit none
 
-    surf = pi * (id + 2.0d0*db) * (length - 2.0d0*db) + pi * (od**2.0d0 - (id + 2.0*db)**2.0d0) * 0.5
+    surf = pi * (id + 2.0_dp*db) * (length - 2.0_dp*db) + pi * (od**2 - (id + 2.0_dp*db)**2) * 0.5_dp
 
-    if (id + 2d0*db .gt. od .or. db.gt.length/2d0) THEN
-      surf = 0d0 ! we hit the wall and burned out
-      r = 0 ! turn off burn rate so burn distance stops increasing
+    if (id + 2.0_dp*db .gt. od .or. db.gt.length/2.0_dp) THEN
+      surf = 0.0_dp ! we hit the wall and burned out
+      r = 0.0_dp ! turn off burn rate so burn distance stops increasing
     endif
 
     vol = vol + r*surf*dt ! increment the interior volume of the chamber a little
@@ -114,32 +115,32 @@ contains
     USE refurbished_mod1
     implicit none
 
-    REAL(8) :: mdtx
-    REAL(8) :: engyx
-    REAL(8) :: tx
-    REAL(8) :: gx
-    REAL(8) :: rx
-    REAL(8) :: px
-    REAL(8) :: cpx
-    REAL(8) :: pcrit
-    REAL(8) :: facx
-    REAL(8) :: term1
-    REAL(8) :: term2
-    REAL(8) :: pratio
-    REAL(8) :: cstar
-    REAL(8) :: ax
-    REAL(8) :: hx
-    REAL(8) :: p1
-    REAL(8) :: p2
+    real(dp) :: ax
+    real(dp) :: cpx
+    real(dp) :: cstar
+    real(dp) :: engyx
+    real(dp) :: facx
+    real(dp) :: gx
+    real(dp) :: hx
+    real(dp) :: mdtx
+    real(dp) :: p1
+    real(dp) :: p2
+    real(dp) :: pcrit
+    real(dp) :: pratio
+    real(dp) :: px
+    real(dp) :: rx
+    real(dp) :: term1
+    real(dp) :: term2
+    real(dp) :: tx
 
-    mdotos = 0.
-    edotos = 0. ! initially set them to zero prior to running this loop
+    mdotos = 0.0_dp
+    edotos = 0.0_dp ! initially set them to zero prior to running this loop
 
     p1 = p
     p2 = pamb
     ax = area
     IF (p1.GT.p2) THEN
-      dsigng = 1
+      dsigng = 1.0_dp
       tx = t
       gx = g
       rx = rgas
@@ -148,7 +149,7 @@ contains
       hx = cp * t
       pratio = p1 / p2
     else
-      dsigng = -1
+      dsigng = -1.0_dp
       tx = tamb
       gx = g
       rx = rgas
@@ -158,17 +159,17 @@ contains
       pratio = p2 / p1
     end if
 
-    pcrit = (2. / (gx + 1.))**(gx / (gx - 1.))
-    IF ((1. / pratio) .LT. pcrit) then
+    pcrit = (2.0_dp / (gx + 1.0_dp))**(gx / (gx - 1.0_dp))
+    IF ((1.0_dp / pratio) .LT. pcrit) then
       ! choked flow
-      cstar = sqrt((1. / gx) * ((gx + 1.) / 2.)**((gx + 1.) / (gx - 1.)) * rx * tx)
+      cstar = sqrt((1.0_dp / gx) * ((gx + 1.0_dp) / 2.0_dp)**((gx + 1.0_dp) / (gx - 1.0_dp)) * rx * tx)
       mdtx= px * ax / cstar
     else
       ! unchoked flow
-      facx = pratio**((gx - 1.) / gx)
+      facx = pratio**((gx - 1.0_dp) / gx)
       term1 = SQRT(gx * rx * tx / facx)
-      term2 = SQRT((facx - 1.) / (gx - 1.))
-      mdtx = SQRT(2.) * px / pratio / rx / tx * facx * term1 * term2 * ax
+      term2 = SQRT((facx - 1.0_dp) / (gx - 1.0_dp))
+      mdtx = SQRT(2.0_dp) * px / pratio / rx / tx * facx * term1 * term2 * ax
     end if
     engyx = mdtx * hx  ! reformulate based on enthalpy of the chamber
     mdotos = mdtx * dsigng ! exiting mass flow (could be negative "dsigng")
@@ -203,7 +204,7 @@ contains
 
     thrust = (p - pamb) * area * cf ! correction to thrust (actual vs vacuum thrust)
     den = rhob * exp(-gravity * mwair * altitude / RU / tamb)
-    drag = -cd * 0.5 * den * vel * abs(vel) * surfrocket
+    drag = -cd * 0.5_dp * den * vel * abs(vel) * surfrocket
     netthrust=thrust+drag
   end subroutine
 
@@ -280,13 +281,13 @@ contains
     ! into the tube/chamber and only the inner diameter burns when ignited.
 
     ! propellant burn rate information
-    psipa = 6894.76d0 ! pascals per psi (constant)
-    pref = 3000d0 * psipa ! reference pressure (constant)
+    psipa = 6894.76_dp ! pascals per psi (constant)
+    pref = 3000.0_dp * psipa ! reference pressure (constant)
 
-    nsteps=nint(tmax/dt) ! number of time steps
+    nsteps = nint(tmax / dt) ! number of time steps
 
     ! preallocate an output file for simulation infomration
-    allocate(output(0:nsteps,11))
+    allocate(output(0:nsteps, 11))
 
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!11
 
@@ -296,9 +297,9 @@ contains
     cv = cp - rgas
     g = cp / cv
 
-    area = pi / 4d0 * dia**2.0d0 ! nozzle area
+    area = pi / 4.0_dp * dia**2.0_dp ! nozzle area
 
-    pamb = 101325d0 ! atmospheric pressure
+    pamb = 101325.0_dp ! atmospheric pressure
 
     ! calculate initial mass and energy in the chamber
     mcham = p * vol / rgas / t ! use ideal gas law to determine mass in chamber
