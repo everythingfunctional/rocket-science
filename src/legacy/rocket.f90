@@ -8,8 +8,8 @@ real(dp), parameter :: pi=3.1415926539
 real(dp), parameter :: RU=8314d0
 real(dp), parameter :: zero=0._dp, one=1._dp
 real(dp), parameter :: cd=1.1, rhob=1.225,tamb=300d0
-real(dp), parameter :: mwair=28.96,surfrocket=pi/4  
-! assuminng a 1.1 drag coefficient and 
+real(dp), parameter :: mwair=28.96,surfrocket=pi/4
+! assuminng a 1.1 drag coefficient and
 
 real(dp):: cp,cv,g,rgas,mw,vol=one,dia,cf,id,od,length,rref,rhos,psipa,pref
 real(dp):: db=zero,dt,tmax,Tflame
@@ -261,24 +261,3 @@ close(file_unit)
   legacy_rocket = output
 
 end function legacy_rocket
-
-program main
-  use mod1, only: dp
-  implicit none
-
-  interface
-    function legacy_rocket(input)
-      import dp
-      character(len=*), intent(in) :: input
-      real(dp), allocatable :: legacy_rocket(:,:)
-    end function
-  end interface
-
-  integer :: i
-  real(dp), allocatable :: output(:,:)
-
-  output = legacy_rocket("rocket.inp")
-  do i = 1, size(output, 1)
-      print'(11e15.6,1x)', output(i,:)
-  end do
-end program
