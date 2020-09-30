@@ -224,7 +224,7 @@ close(file_unit)
   nsteps=nint(tmax/dt) ! number of time steps
 
 ! preallocate an output file for simulation infomration
-  allocate(output(1:nsteps,11))
+  allocate(output(0:nsteps,11))
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!11
 
@@ -241,6 +241,8 @@ close(file_unit)
 !  calculate initial mass and energy in the chamber
   mcham=p*vol/rgas/t  ! use ideal gas law to determine mass in chamber
   echam=mcham*cv*t ! initial internal energy in chamber
+
+  output(0,:) = [time,p,t,mdotos,thrust,drag,netthrust,vol,accel,vel,altitude]
 
   call propwt
   do i=1,nsteps

@@ -14,7 +14,7 @@ program main
   real(dp), allocatable :: output(:,:)
 
   output = legacy_rocket("rocket.inp")
-  do i = 1, size(output, 1)
+  do i = lbound(output, 1), ubound(output, 1)
       print'(11e15.6,1x)', output(i,:)
   end do
 end program
