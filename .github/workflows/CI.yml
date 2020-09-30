@@ -15,6 +15,11 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v1
 
+    - name: Checkout submodules
+      run: |
+        git submodule init
+        git submodule update
+
 
     - name: Install Dependencies
       run: |
