@@ -1,4 +1,4 @@
-module mod1
+module refurbished_mod1
 implicit none
 save
 integer, parameter :: precision=15, range=307
@@ -22,8 +22,11 @@ real(dp), allocatable :: output(:,:)
 real(dp) den ! air density
 end module
 
+module refurbished
+    implicit none
+contains
 subroutine propwt ! calculate weight of propellent
-  use mod1
+  use refurbished_mod1
   implicit none
   propmass=pi/4*(od**2-id**2)*length*rhos
   rocketmass=0.15*propmass ! assume 85% propellant loading and 15% extra wt of rocket
@@ -31,7 +34,7 @@ end subroutine
 
 
 subroutine burnrate
-  use mod1
+  use refurbished_mod1
   implicit none
   r=rref*(p/pref)**n ! calculate burn rate
   db=db+r*dt  ! calculate incremental burn distance
@@ -39,7 +42,7 @@ end subroutine
 
 subroutine calcsurf
   ! cylinder burning from id outward and from both ends along the length
-  use mod1
+  use refurbished_mod1
   implicit none
 
   surf=pi*(id+2.0d0*db)*(length-2.0d0*db)+pi*(od**2.0d0-(id+2.0*db)**2.0d0)*0.5
@@ -53,14 +56,14 @@ vol=vol+r*surf*dt ! increment the interior volume of the chamber a little
 end subroutine
 
 subroutine calmdotgen
-  use mod1
+  use refurbished_mod1
   implicit none
   mdotgen=rhos*r*surf
   edotgen=mdotgen*cp*Tflame
 end subroutine
 
 subroutine massflow
-   USE mod1
+   USE refurbished_mod1
    implicit none
    REAL (8)::mdtx,engyx
    REAL (8)::tx,gx,rx,px,cpx,pcrit,facx,term1,term2,pratio,cstar,ax,hx
@@ -110,26 +113,26 @@ subroutine massflow
 end subroutine
 
 subroutine addmass
-    use mod1
+    use refurbished_mod1
     implicit none
     mcham=mcham+(mdotgen-mdotos)*dt
     echam=echam+(edotgen-edotos)*dt
 end subroutine
 
 subroutine calct
-    use mod1
+    use refurbished_mod1
     implicit none
     t=echam/mcham/cv
 end subroutine
 
 subroutine calcp
-    use mod1
+    use refurbished_mod1
     implicit none
     p=mcham*rgas*t/vol
 end subroutine
 
 subroutine calcthrust
-    use mod1
+    use refurbished_mod1
     implicit none
     thrust=(p-pamb)*area*cf ! correction to thrust (actual vs vacuum thrust)
     den=rhob*exp(-gravity*mwair*altitude/RU/tamb)
@@ -139,7 +142,7 @@ subroutine calcthrust
 end subroutine
 
 subroutine height
-  use mod1
+  use refurbished_mod1
   implicit none
   propmass=propmass-mdotgen*dt ! incremental change in propellant mass
   accel=netthrust/(propmass+rocketmass+mcham)-gravity
@@ -152,7 +155,7 @@ end subroutine
 !!  Main program
 
 
-function legacy_rocket( &
+function rocket( &
     dt_, &
     t_max_, &
     c_p_, &
@@ -173,7 +176,7 @@ function legacy_rocket( &
   !! a thrust coefficient and ignoring the complexities of
   !! what happens to thrust at low pressures, i.e. shock in the nozzle
 
-use mod1
+use refurbished_mod1
 implicit none
 
 real(dp), intent(in) :: dt_, t_max_
@@ -182,7 +185,7 @@ real(dp), intent(in) :: temperature_, pressure_
 real(dp), intent(in) :: T_flame_, r_ref_, n_
 real(dp), intent(in) :: id_, od_, length_, rho_solid_
 real(dp), intent(in) :: dia_, C_f_
-real(dp), allocatable :: legacy_rocket(:,:)
+real(dp), allocatable :: rocket(:,:)
 
 dt   = dt_
 tmax = t_max_
@@ -249,6 +252,7 @@ cf  = C_f_
 
   enddo
 
-  legacy_rocket = output
+  rocket = output
 
-end function legacy_rocket
+end function
+end module

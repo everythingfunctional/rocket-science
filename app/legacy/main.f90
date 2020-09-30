@@ -77,6 +77,6 @@ program main
       dia_, &
       C_f_)
   do i = lbound(output, 1), ubound(output, 1)
-      print'(11e15.6,1x)', output(i,:)
+      print *, output(i,:)
   end do
 end program
