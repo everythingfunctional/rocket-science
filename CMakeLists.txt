@@ -81,7 +81,7 @@ if(HAVE_ERROR_STOP_IN_PURE)
   add_definitions(-DHAVE_ERROR_STOP_IN_PURE)
 endif()
 
-foreach(directory src app submodules integration_tests)
+foreach(directory src app submodules integration_tests unit_tests)
   add_subdirectory("${directory}")
 endforeach()
 
@@ -99,6 +99,17 @@ foreach(integration_test
     COMMAND ${CMAKE_BINARY_DIR}/integration_tests/${integration_test}/test-${integration_test}
   )
   set_tests_properties(${integration_test}
+     PROPERTIES PASS_REGULAR_EXPRESSION "All Passed."
+  )
+endforeach()
+
+foreach(unit_test
+  refurbished
+)
+  add_test( NAME "${unit_test}"
+    COMMAND ${CMAKE_BINARY_DIR}/unit_tests/${unit_test}/test-${unit_test}
+  )
+  set_tests_properties(${unit_test}
      PROPERTIES PASS_REGULAR_EXPRESSION "All Passed."
   )
 endforeach()
