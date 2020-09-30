@@ -71,6 +71,9 @@ end module
 
 module refurbished
   implicit none
+  private
+
+  public :: rocket
 contains
   subroutine propwt ! calculate weight of propellent
     use refurbished_mod1, only: &
