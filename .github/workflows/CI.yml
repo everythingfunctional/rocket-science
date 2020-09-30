@@ -1,0 +1,47 @@
+name: CI
+
+on: [push, pull_request]
+
+
+jobs:
+  Build:
+    runs-on: ubuntu-latest
+
+    env:
+      FC: gfortran
+      GCC_V: 9
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v1
+
+    - name: Checkout submodules
+      run: |
+        git submodule init
+        git submodule update
+
+
+    - name: Install Dependencies
+      run: |
+        sudo apt install -y gnuplot
+        sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-${GCC_V} 100 \
+        --slave /usr/bin/gfortran gfortran /usr/bin/gfortran-${GCC_V} \
+        --slave /usr/bingcov gcov /usr/bin/gcov-${GCC_V}
+
+    - name: Get Time
+      id: time
+      uses: nanzm/get-time-action@v1.0
+      with:
+        format: 'YYYY-MM'
+
+    - name: Build
+      run: |
+        mkdir build
+        cd build
+        cmake ..
+        make
+
+    - name: Run tests
+      run: |
+        cd build
+        ctest -V
