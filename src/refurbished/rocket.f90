@@ -75,24 +75,48 @@ module refurbished
 
   public :: rocket
 contains
-  subroutine propwt ! calculate weight of propellent
-    use refurbished_mod1, only: &
-        dp, id, length, od, pi, propmass, rocketmass, rhos
+  subroutine propwt(id, length, od, propmass, rocketmass, rhos)
+    ! calculate weight of propellent
+    use refurbished_mod1, only: dp, pi
+
+    real(dp), intent(in) :: id
+    real(dp), intent(in) :: length
+    real(dp), intent(in) :: od
+    real(dp), intent(out) :: propmass
+    real(dp), intent(out) :: rocketmass
+    real(dp), intent(in) :: rhos
 
     propmass = pi / 4.0_dp * (od**2 - id**2) * length * rhos
     rocketmass = 0.15_dp * propmass ! assume 85% propellant loading and 15% extra wt of rocket
   end subroutine
 
-  subroutine burnrate
-    use refurbished_mod1, only: db, dt, n, p, pref, r, rref
+  subroutine burnrate(db, dt, n, p, pref, r, rref)
+    use refurbished_mod1, only: dp
+
+    real(dp), intent(inout) :: db
+    real(dp), intent(in) :: dt
+    real(dp), intent(in) :: n
+    real(dp), intent(in) :: p
+    real(dp), intent(in) :: pref
+    real(dp), intent(out) :: r
+    real(dp), intent(in) :: rref
 
     r = rref * (p/pref)**n ! calculate burn rate
     db = db + r*dt ! calculate incremental burn distance
   end subroutine
 
-  subroutine calcsurf
+  subroutine calcsurf(db, dt, id, length, od, r, surf, vol)
     ! cylinder burning from id outward and from both ends along the length
-    use refurbished_mod1, only: db, dp, dt, id, length, od, pi, r, surf, vol
+    use refurbished_mod1, only: dp, pi
+
+    real(dp), intent(in) :: db
+    real(dp), intent(in) :: dt
+    real(dp), intent(in) :: id
+    real(dp), intent(in) :: length
+    real(dp), intent(in) :: od
+    real(dp), intent(out) :: r
+    real(dp), intent(out) :: surf
+    real(dp), intent(inout) :: vol
 
     surf = pi * (id + 2.0_dp*db) * (length - 2.0_dp*db) + pi * (od**2 - (id + 2.0_dp*db)**2) * 0.5_dp
 
@@ -104,16 +128,34 @@ contains
     vol = vol + r*surf*dt ! increment the interior volume of the chamber a little
   end subroutine
 
-  subroutine calmdotgen
-    use refurbished_mod1, only: cp, edotgen, mdotgen, r, rhos, surf, Tflame
+  subroutine calmdotgen(cp, edotgen, mdotgen, r, rhos, surf, Tflame)
+    use refurbished_mod1, only: dp
+
+    real(dp), intent(in) :: cp
+    real(dp), intent(out) :: edotgen
+    real(dp), intent(out) :: mdotgen
+    real(dp), intent(in) :: r
+    real(dp), intent(in) :: rhos
+    real(dp), intent(in) :: surf
+    real(dp), intent(in) :: Tflame
 
     mdotgen = rhos * r * surf
     edotgen = mdotgen * cp * Tflame
   end subroutine
 
-  subroutine massflow
-    use refurbished_mod1, only: &
-        area, cp, dp, dsigng, edotos, g, mdotos, p, pamb, rgas, t, tamb
+  subroutine massflow(area, cp, dsigng, edotos, g, mdotos, p, pamb, rgas, t)
+    use refurbished_mod1, only: dp, tamb
+
+    real(dp), intent(in) :: area
+    real(dp), intent(in) :: cp
+    real(dp), intent(out) :: dsigng
+    real(dp), intent(out) :: edotos
+    real(dp), intent(in) :: g
+    real(dp), intent(out) :: mdotos
+    real(dp), intent(in) :: p
+    real(dp), intent(in) :: pamb
+    real(dp), intent(in) :: rgas
+    real(dp), intent(in) :: t
 
     real(dp) :: ax
     real(dp) :: cpx
@@ -176,46 +218,59 @@ contains
     edotos = engyx * dsigng ! exiting enthalpy
   end subroutine
 
-  subroutine addmass
-    use refurbished_mod1, only: &
-        dt, echam, edotgen, edotos, mcham, mdotgen, mdotos
+  subroutine addmass(dt, echam, edotgen, edotos, mcham, mdotgen, mdotos)
+    use refurbished_mod1, only: dp
+
+    real(dp), intent(in) :: dt
+    real(dp), intent(inout) :: echam
+    real(dp), intent(in) :: edotgen
+    real(dp), intent(in) :: edotos
+    real(dp), intent(inout) :: mcham
+    real(dp), intent(in) :: mdotgen
+    real(dp), intent(in) :: mdotos
 
     mcham = mcham + (mdotgen - mdotos) * dt
     echam = echam + (edotgen - edotos) * dt
   end subroutine
 
-  subroutine calct
-    use refurbished_mod1, only: cv, echam, mcham, t
+  subroutine calct(cv, echam, mcham, t)
+    use refurbished_mod1, only: dp
+
+    real(dp), intent(in) :: cv
+    real(dp), intent(in) :: echam
+    real(dp), intent(in) :: mcham
+    real(dp), intent(out) :: t
 
     t = echam / mcham / cv
   end subroutine
 
-  subroutine calcp
-    use refurbished_mod1, only: mcham, p, rgas, t, vol
+  subroutine calcp(mcham, p, rgas, t, vol)
+    use refurbished_mod1, only: dp
+
+    real(dp), intent(in) :: mcham
+    real(dp), intent(out) :: p
+    real(dp), intent(in) :: rgas
+    real(dp), intent(in) :: t
+    real(dp), intent(in) :: vol
 
     p = mcham * rgas * t / vol
   end subroutine
 
-  subroutine calcthrust
+  subroutine calcthrust( &
+      altitude, area, cf, den, drag, netthrust, p, pamb, thrust, vel)
     use refurbished_mod1, only: &
-        altitude, &
-        area, &
-        cf, &
-        cd, &
-        den, &
-        dp, &
-        drag, &
-        gravity, &
-        mwair, &
-        netthrust, &
-        p, &
-        pamb, &
-        rhob, &
-        RU, &
-        surfrocket, &
-        tamb, &
-        thrust, &
-        vel
+        cd, dp, gravity, mwair, rhob, RU, surfrocket, tamb
+
+    real(dp), intent(in) :: altitude
+    real(dp), intent(in) :: area
+    real(dp), intent(in) :: cf
+    real(dp), intent(out) :: den
+    real(dp), intent(out) :: drag
+    real(dp), intent(out) :: netthrust
+    real(dp), intent(in) :: p
+    real(dp), intent(in) :: pamb
+    real(dp), intent(out) :: thrust
+    real(dp), intent(in) :: vel
 
     thrust = (p - pamb) * area * cf ! correction to thrust (actual vs vacuum thrust)
     den = rhob * exp(-gravity * mwair * altitude / RU / tamb)
@@ -223,18 +278,19 @@ contains
     netthrust=thrust+drag
   end subroutine
 
-  subroutine height
-    use refurbished_mod1, only: &
-        accel, &
-        altitude, &
-        dt, &
-        gravity, &
-        mcham, &
-        mdotgen, &
-        netthrust, &
-        propmass, &
-        rocketmass, &
-        vel
+  subroutine height( &
+      accel, altitude, dt, mcham, mdotgen, netthrust, propmass, rocketmass, vel)
+    use refurbished_mod1, only: dp, gravity
+
+    real(dp), intent(out) :: accel
+    real(dp), intent(inout) :: altitude
+    real(dp), intent(in) :: dt
+    real(dp), intent(in) :: mcham
+    real(dp), intent(in) :: mdotgen
+    real(dp), intent(in) :: netthrust
+    real(dp), intent(inout) :: propmass
+    real(dp), intent(in) :: rocketmass
+    real(dp), intent(inout) :: vel
 
     propmass = propmass - mdotgen*dt ! incremental change in propellant mass
     accel = netthrust / (propmass + rocketmass + mcham) - gravity
@@ -270,16 +326,22 @@ contains
         cf, &
         cp, &
         cv, &
+        db, &
+        den, &
         dia, &
         dp, &
         drag, &
+        dsigng, &
         dt, &
         echam, &
+        edotgen, &
+        edotos, &
         g, &
         i, &
         id, &
         length, &
         mcham, &
+        mdotgen, &
         mdotos, &
         mw, &
         n, &
@@ -291,11 +353,15 @@ contains
         pamb, &
         pi, &
         pref, &
+        propmass, &
         psipa, &
+        r, &
         rgas, &
         rhos, &
         rref, &
+        rocketmass, &
         ru, &
+        surf, &
         t, &
         Tflame, &
         thrust, &
@@ -369,17 +435,27 @@ contains
 
     output(0,:) = [time, p, t, mdotos, thrust, drag, netthrust, vol, accel, vel, altitude]
 
-    call propwt
+    call propwt(id, length, od, propmass, rocketmass, rhos)
     do i=1,nsteps
-      call burnrate
-      call calcsurf
-      call calmdotgen  ! [mdot,engy,dsign]= massflow(p1,pamb,t1,tamb,cp,cp,rgas,rgas,g,g,area)
-      call massflow
-      call addmass
-      call calct
-      call calcp
-      call calcthrust
-      call height
+      call burnrate(db, dt, n, p, pref, r, rref)
+      call calcsurf(db, dt, id, length, od, r, surf, vol)
+      call calmdotgen(cp, edotgen, mdotgen, r, rhos, surf, Tflame) ! [mdot,engy,dsign]= massflow(p1,pamb,t1,tamb,cp,cp,rgas,rgas,g,g,area)
+      call massflow(area, cp, dsigng, edotos, g, mdotos, p, pamb, rgas, t)
+      call addmass(dt, echam, edotgen, edotos, mcham, mdotgen, mdotos)
+      call calct(cv, echam, mcham, t)
+      call calcp(mcham, p, rgas, t, vol)
+      call calcthrust( &
+          altitude, area, cf, den, drag, netthrust, p, pamb, thrust, vel)
+      call height( &
+          accel, &
+          altitude, &
+          dt, &
+          mcham, &
+          mdotgen, &
+          netthrust, &
+          propmass, &
+          rocketmass, &
+          vel)
       time = time + dt
       output(i,:) = [time, p, t, mdotos, thrust, drag, netthrust, vol, accel, vel, altitude]
     end do
