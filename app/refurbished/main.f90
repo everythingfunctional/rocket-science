@@ -1,6 +1,5 @@
 program main
-  use refurbished_mod1, only: dp
-  use refurbished, only: rocket
+  use refurbished, only: rocket, dp
   implicit none
 
   integer :: i

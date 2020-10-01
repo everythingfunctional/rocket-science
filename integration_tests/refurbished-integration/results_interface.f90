@@ -1,5 +1,5 @@
 module results_interface
-    use refurbished_mod1, only: dp
+    use refurbished, only: dp
 
     implicit none
     private
