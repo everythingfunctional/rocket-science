@@ -1,5 +1,8 @@
-module refurbished_mod1
+module refurbished
   implicit none
+  private
+
+  public :: rocket, dp
 
   integer, parameter :: precision = 15
   integer, parameter :: range = 307
@@ -15,19 +18,9 @@ module refurbished_mod1
   real(dp), parameter :: surfrocket = pi / 4.0_dp
   real(dp), parameter :: tamb = 300.0_dp
   real(dp), parameter :: zero = 0.0_dp
-  ! assuminng a 1.1 drag coefficient and
-end module
-
-module refurbished
-  implicit none
-  private
-
-  public :: rocket
 contains
   subroutine propwt(id, length, od, propmass, rocketmass, rhos)
     ! calculate weight of propellent
-    use refurbished_mod1, only: dp, pi
-
     real(dp), intent(in) :: id
     real(dp), intent(in) :: length
     real(dp), intent(in) :: od
@@ -40,8 +33,6 @@ contains
   end subroutine
 
   subroutine burnrate(db, dt, n, p, pref, r, rref)
-    use refurbished_mod1, only: dp
-
     real(dp), intent(inout) :: db
     real(dp), intent(in) :: dt
     real(dp), intent(in) :: n
@@ -56,8 +47,6 @@ contains
 
   subroutine calcsurf(db, dt, id, length, od, r, surf, vol)
     ! cylinder burning from id outward and from both ends along the length
-    use refurbished_mod1, only: dp, pi
-
     real(dp), intent(in) :: db
     real(dp), intent(in) :: dt
     real(dp), intent(in) :: id
@@ -78,8 +67,6 @@ contains
   end subroutine
 
   subroutine calmdotgen(cp, edotgen, mdotgen, r, rhos, surf, Tflame)
-    use refurbished_mod1, only: dp
-
     real(dp), intent(in) :: cp
     real(dp), intent(out) :: edotgen
     real(dp), intent(out) :: mdotgen
@@ -93,8 +80,6 @@ contains
   end subroutine
 
   subroutine massflow(area, cp, dsigng, edotos, g, mdotos, p, pamb, rgas, t)
-    use refurbished_mod1, only: dp, tamb
-
     real(dp), intent(in) :: area
     real(dp), intent(in) :: cp
     real(dp), intent(out) :: dsigng
@@ -168,8 +153,6 @@ contains
   end subroutine
 
   subroutine addmass(dt, echam, edotgen, edotos, mcham, mdotgen, mdotos)
-    use refurbished_mod1, only: dp
-
     real(dp), intent(in) :: dt
     real(dp), intent(inout) :: echam
     real(dp), intent(in) :: edotgen
@@ -183,8 +166,6 @@ contains
   end subroutine
 
   subroutine calct(cv, echam, mcham, t)
-    use refurbished_mod1, only: dp
-
     real(dp), intent(in) :: cv
     real(dp), intent(in) :: echam
     real(dp), intent(in) :: mcham
@@ -194,8 +175,6 @@ contains
   end subroutine
 
   subroutine calcp(mcham, p, rgas, t, vol)
-    use refurbished_mod1, only: dp
-
     real(dp), intent(in) :: mcham
     real(dp), intent(out) :: p
     real(dp), intent(in) :: rgas
@@ -207,9 +186,6 @@ contains
 
   subroutine calcthrust( &
       altitude, area, cf, den, drag, netthrust, p, pamb, thrust, vel)
-    use refurbished_mod1, only: &
-        cd, dp, gravity, mwair, rhob, RU, surfrocket, tamb
-
     real(dp), intent(in) :: altitude
     real(dp), intent(in) :: area
     real(dp), intent(in) :: cf
@@ -229,8 +205,6 @@ contains
 
   subroutine height( &
       accel, altitude, dt, mcham, mdotgen, netthrust, propmass, rocketmass, vel)
-    use refurbished_mod1, only: dp, gravity
-
     real(dp), intent(out) :: accel
     real(dp), intent(inout) :: altitude
     real(dp), intent(in) :: dt
@@ -267,9 +241,6 @@ contains
     !! rocket motor flowing out of a nozzle, assuming
     !! a thrust coefficient and ignoring the complexities of
     !! what happens to thrust at low pressures, i.e. shock in the nozzle
-
-    use refurbished_mod1, only: dp, one, pi, ru, zero
-
     real(dp), intent(in) :: dt_
     real(dp), intent(in) :: t_max_
     real(dp), intent(in) :: c_p_

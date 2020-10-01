@@ -1,6 +1,5 @@
 module comparison_test
-    use refurbished, only: refurbished_rocket => rocket
-    use refurbished_mod1, only: dp
+    use refurbished, only: refurbished_rocket => rocket, dp
     use results_interface, only: results_t
     use Vegetables_m, only: Result_t, TestItem_t, assertThat, describe, it
 
