@@ -79,7 +79,7 @@ contains
     edotgen = mdotgen * cp * Tflame
   end subroutine
 
-  subroutine massflow(area, cp, g, p, pamb, rgas, t,  dsigng, edotos, mdotos)
+  subroutine massflow(area, cp, g, p, pamb, rgas, t,  edotos, mdotos)
     real(dp), intent(in) :: area
     real(dp), intent(in) :: cp
     real(dp), intent(in) :: g
@@ -87,13 +87,13 @@ contains
     real(dp), intent(in) :: pamb
     real(dp), intent(in) :: rgas
     real(dp), intent(in) :: t
-    real(dp), intent(out) :: dsigng
     real(dp), intent(out) :: edotos
     real(dp), intent(out) :: mdotos
 
     real(dp) :: ax
     real(dp) :: cpx
     real(dp) :: cstar
+    real(dp) :: dsigng
     real(dp) :: engyx
     real(dp) :: facx
     real(dp) :: gx
@@ -185,17 +185,18 @@ contains
   end subroutine
 
   subroutine calcthrust( &
-      altitude, area, cf, p, pamb, vel,  den, drag, netthrust, thrust)
+      altitude, area, cf, p, pamb, vel,  drag, netthrust, thrust)
     real(dp), intent(in) :: altitude
     real(dp), intent(in) :: area
     real(dp), intent(in) :: cf
     real(dp), intent(in) :: p
     real(dp), intent(in) :: pamb
     real(dp), intent(in) :: vel
-    real(dp), intent(out) :: den
     real(dp), intent(out) :: drag
     real(dp), intent(out) :: netthrust
     real(dp), intent(out) :: thrust
+
+    real(dp) :: den
 
     thrust = (p - pamb) * area * cf ! correction to thrust (actual vs vacuum thrust)
     den = rhob * exp(-gravity * mwair * altitude / RU / tamb)
@@ -204,7 +205,6 @@ contains
   end subroutine
 
   subroutine height( &
-      accel, &
       dt, &
       mcham, &
       mdotgen, &
@@ -213,8 +213,9 @@ contains
 
       altitude, &
       propmass, &
-      vel)
-    real(dp), intent(out) :: accel
+      vel, &
+
+      accel)
     real(dp), intent(in) :: dt
     real(dp), intent(in) :: mcham
     real(dp), intent(in) :: mdotgen
@@ -223,6 +224,7 @@ contains
     real(dp), intent(inout) :: altitude
     real(dp), intent(inout) :: propmass
     real(dp), intent(inout) :: vel
+    real(dp), intent(out) :: accel
 
     propmass = propmass - mdotgen*dt ! incremental change in propellant mass
     accel = netthrust / (propmass + rocketmass + mcham) - gravity
@@ -274,10 +276,8 @@ contains
     real(dp) :: cp
     real(dp) :: cv
     real(dp) :: db = zero
-    real(dp) :: den ! air density
     real(dp) :: dia
     real(dp) :: drag = zero
-    real(dp) :: dsigng
     real(dp) :: dt
     real(dp) :: echam
     real(dp) :: edotgen
@@ -367,14 +367,13 @@ contains
       call burnrate(dt, n, p, pref, rref,  db,  r)
       call calcsurf(db, dt, id, length, od,  vol,  r, surf)
       call calmdotgen(cp, r, rhos, surf, Tflame,  edotgen, mdotgen) ! [mdot,engy,dsign]= massflow(p1,pamb,t1,tamb,cp,cp,rgas,rgas,g,g,area)
-      call massflow(area, cp, g, p, pamb, rgas, t,  dsigng, edotos, mdotos)
+      call massflow(area, cp, g, p, pamb, rgas, t,  edotos, mdotos)
       call addmass(dt, edotgen, edotos, mdotgen, mdotos,  echam, mcham)
       call calct(cv, echam, mcham,  t)
       call calcp(mcham, rgas, t, vol,  p)
       call calcthrust( &
-          altitude, area, cf, p, pamb, vel,  den, drag, netthrust, thrust)
+          altitude, area, cf, p, pamb, vel,  drag, netthrust, thrust)
       call height( &
-          accel, &
           dt, &
           mcham, &
           mdotgen, &
@@ -383,7 +382,9 @@ contains
 
           altitude, &
           propmass, &
-          vel)
+          vel, &
+
+          accel)
       time = time + dt
       output(i,:) = [time, p, t, mdotos, thrust, drag, netthrust, vol, accel, vel, altitude]
     end do
