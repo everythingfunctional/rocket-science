@@ -90,21 +90,15 @@ contains
     real(dp), intent(out) :: edotos
     real(dp), intent(out) :: mdotos
 
-    real(dp) :: ax
-    real(dp) :: cpx
     real(dp) :: cstar
     real(dp) :: dsigng
     real(dp) :: engyx
     real(dp) :: facx
-    real(dp) :: gx
     real(dp) :: hx
     real(dp) :: mdtx
-    real(dp) :: p1
-    real(dp) :: p2
     real(dp) :: pcrit
     real(dp) :: pratio
     real(dp) :: px
-    real(dp) :: rx
     real(dp) :: term1
     real(dp) :: term2
     real(dp) :: tx
@@ -112,40 +106,31 @@ contains
     mdotos = 0.0_dp
     edotos = 0.0_dp ! initially set them to zero prior to running this loop
 
-    p1 = p
-    p2 = pamb
-    ax = area
-    if (p1.GT.p2) then
+    if (p.GT.pamb) then
       dsigng = 1.0_dp
       tx = t
-      gx = g
-      rx = rgas
       px = p
-      cpx = cp
       hx = cp * t
-      pratio = p1 / p2
+      pratio = p / pamb
     else
       dsigng = -1.0_dp
       tx = tamb
-      gx = g
-      rx = rgas
       px = pamb
-      cpx = cp
       hx = cp * tamb
-      pratio = p2 / p1
+      pratio = pamb / p
     end if
 
-    pcrit = (2.0_dp / (gx + 1.0_dp))**(gx / (gx - 1.0_dp))
+    pcrit = (2.0_dp / (g + 1.0_dp))**(g / (g - 1.0_dp))
     if ((1.0_dp / pratio) .LT. pcrit) then
       ! choked flow
-      cstar = sqrt((1.0_dp / gx) * ((gx + 1.0_dp) / 2.0_dp)**((gx + 1.0_dp) / (gx - 1.0_dp)) * rx * tx)
-      mdtx= px * ax / cstar
+      cstar = sqrt((1.0_dp / g) * ((g + 1.0_dp) / 2.0_dp)**((g + 1.0_dp) / (g - 1.0_dp)) * rgas * tx)
+      mdtx= px * area / cstar
     else
       ! unchoked flow
-      facx = pratio**((gx - 1.0_dp) / gx)
-      term1 = sqrt(gx * rx * tx / facx)
-      term2 = sqrt((facx - 1.0_dp) / (gx - 1.0_dp))
-      mdtx = sqrt(2.0_dp) * px / pratio / rx / tx * facx * term1 * term2 * ax
+      facx = pratio**((g - 1.0_dp) / g)
+      term1 = sqrt(g * rgas * tx / facx)
+      term2 = sqrt((facx - 1.0_dp) / (g - 1.0_dp))
+      mdtx = sqrt(2.0_dp) * px / pratio / rgas / tx * facx * term1 * term2 * area
     end if
     engyx = mdtx * hx  ! reformulate based on enthalpy of the chamber
     mdotos = mdtx * dsigng ! exiting mass flow (could be negative "dsigng")
@@ -233,68 +218,58 @@ contains
   end subroutine
 
   function rocket( &
-      dt_, &
-      t_max_, &
-      c_p_, &
-      MW_, &
+      dt, &
+      tmax, &
+      cp, &
+      mw, &
       temperature_, &
       pressure_, &
-      T_flame_, &
-      r_ref_, &
-      n_, &
-      id_, &
-      od_, &
-      length_, &
-      rho_solid_, &
-      dia_, &
-      C_f_)
+      Tflame, &
+      rref, &
+      n, &
+      id, &
+      od, &
+      length, &
+      rhos, &
+      dia, &
+      cf)
     !! this is a basic program of a single stage
     !! rocket motor flowing out of a nozzle, assuming
     !! a thrust coefficient and ignoring the complexities of
     !! what happens to thrust at low pressures, i.e. shock in the nozzle
-    real(dp), intent(in) :: dt_
-    real(dp), intent(in) :: t_max_
-    real(dp), intent(in) :: c_p_
-    real(dp), intent(in) :: MW_
+    real(dp), intent(in) :: dt
+    real(dp), intent(in) :: tmax
+    real(dp), intent(in) :: cp
+    real(dp), intent(in) :: mw
     real(dp), intent(in) :: temperature_
     real(dp), intent(in) :: pressure_
-    real(dp), intent(in) :: T_flame_
-    real(dp), intent(in) :: r_ref_
-    real(dp), intent(in) :: n_
-    real(dp), intent(in) :: id_
-    real(dp), intent(in) :: od_
-    real(dp), intent(in) :: length_
-    real(dp), intent(in) :: rho_solid_
-    real(dp), intent(in) :: dia_
-    real(dp), intent(in) :: C_f_
+    real(dp), intent(in) :: Tflame
+    real(dp), intent(in) :: rref
+    real(dp), intent(in) :: n
+    real(dp), intent(in) :: id
+    real(dp), intent(in) :: od
+    real(dp), intent(in) :: length
+    real(dp), intent(in) :: rhos
+    real(dp), intent(in) :: dia
+    real(dp), intent(in) :: cf
     real(dp), allocatable :: rocket(:,:)
 
     real(dp) :: accel = zero
     real(dp) :: altitude = zero
     real(dp) :: area
-    real(dp) :: cf
-    real(dp) :: cp
     real(dp) :: cv
     real(dp) :: db = zero
-    real(dp) :: dia
     real(dp) :: drag = zero
-    real(dp) :: dt
     real(dp) :: echam
     real(dp) :: edotgen
     real(dp) :: edotos
     real(dp) :: g
     integer :: i
-    real(dp) :: id
-    real(dp) :: length
     real(dp) :: mcham
     real(dp) :: mdotgen
     real(dp) :: mdotos = zero
-    real(dp) :: mw
-    real(dp) :: n
     real(dp) :: netthrust = zero
     integer :: nsteps
-    real(dp) :: od
-    real(dp), allocatable :: output(:,:)
     real(dp) :: p
     real(dp) :: pamb
     real(dp) :: pref
@@ -302,33 +277,16 @@ contains
     real(dp) :: psipa
     real(dp) :: rgas
     real(dp) :: r
-    real(dp) :: rhos
     real(dp) :: rocketmass = zero
-    real(dp) :: rref
     real(dp) :: surf
     real(dp) :: t
-    real(dp) :: Tflame
     real(dp) :: thrust = zero
     real(dp) :: time = zero
-    real(dp) :: tmax
     real(dp) :: vol = one
     real(dp) :: vel = zero
 
-    dt = dt_
-    tmax = t_max_
-    cp = c_p_
-    mw = MW_
     t = temperature_
     p = pressure_
-    Tflame = T_flame_
-    rref = r_ref_
-    n = n_
-    id = id_
-    od = od_
-    length = length_
-    rhos = rho_solid_
-    dia = dia_
-    cf = C_f_
 
     ! propellent grain is a cylinder burning radially outward and axially inward from one end.
     ! the other end is considered inhibited.
@@ -342,7 +300,7 @@ contains
     nsteps = nint(tmax / dt) ! number of time steps
 
     ! preallocate an output file for simulation infomration
-    allocate(output(0:nsteps, 11))
+    allocate(rocket(0:nsteps, 11))
 
     !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!11
 
@@ -360,7 +318,7 @@ contains
     mcham = p * vol / rgas / t ! use ideal gas law to determine mass in chamber
     echam = mcham * cv * t ! initial internal energy in chamber
 
-    output(0,:) = [time, p, t, mdotos, thrust, drag, netthrust, vol, accel, vel, altitude]
+    rocket(0,:) = [time, p, t, mdotos, thrust, drag, netthrust, vol, accel, vel, altitude]
 
     call propwt(id, length, od, rhos,  propmass, rocketmass)
     do i=1,nsteps
@@ -386,8 +344,7 @@ contains
 
           accel)
       time = time + dt
-      output(i,:) = [time, p, t, mdotos, thrust, drag, netthrust, vol, accel, vel, altitude]
+      rocket(i,:) = [time, p, t, mdotos, thrust, drag, netthrust, vol, accel, vel, altitude]
     end do
-    rocket = output
   end function
 end module
