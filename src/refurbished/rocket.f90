@@ -12,7 +12,10 @@ module refurbished
   real(dp), parameter :: gravity = 9.81_dp
   real(dp), parameter :: mwair = 28.96_dp
   real(dp), parameter :: one = 1.0_dp
+  real(dp), parameter :: pamb = 101325.0_dp ! atmospheric pressure
   real(dp), parameter :: pi = 3.1415926539_dp
+  real(dp), parameter :: psipa = 6894.76_dp ! pascals per psi
+  real(dp), parameter :: pref = 3000.0_dp * psipa ! reference pressure
   real(dp), parameter :: rhob = 1.225_dp
   real(dp), parameter :: RU = 8314.0_dp
   real(dp), parameter :: surfrocket = pi / 4.0_dp
@@ -32,11 +35,10 @@ contains
     rocketmass = 0.15_dp * propmass ! assume 85% propellant loading and 15% extra wt of rocket
   end subroutine
 
-  subroutine burnrate(dt, n, p, pref, rref,  db,  r)
+  subroutine burnrate(dt, n, p, rref,  db,  r)
     real(dp), intent(in) :: dt
     real(dp), intent(in) :: n
     real(dp), intent(in) :: p
-    real(dp), intent(in) :: pref
     real(dp), intent(in) :: rref
     real(dp), intent(inout) :: db
     real(dp), intent(out) :: r
@@ -79,12 +81,11 @@ contains
     edotgen = mdotgen * cp * Tflame
   end subroutine
 
-  subroutine massflow(area, cp, g, p, pamb, rgas, t,  edotos, mdotos)
+  subroutine massflow(area, cp, g, p, rgas, t,  edotos, mdotos)
     real(dp), intent(in) :: area
     real(dp), intent(in) :: cp
     real(dp), intent(in) :: g
     real(dp), intent(in) :: p
-    real(dp), intent(in) :: pamb
     real(dp), intent(in) :: rgas
     real(dp), intent(in) :: t
     real(dp), intent(out) :: edotos
@@ -170,12 +171,11 @@ contains
   end subroutine
 
   subroutine calcthrust( &
-      altitude, area, cf, p, pamb, vel,  drag, netthrust, thrust)
+      altitude, area, cf, p, vel,  drag, netthrust, thrust)
     real(dp), intent(in) :: altitude
     real(dp), intent(in) :: area
     real(dp), intent(in) :: cf
     real(dp), intent(in) :: p
-    real(dp), intent(in) :: pamb
     real(dp), intent(in) :: vel
     real(dp), intent(out) :: drag
     real(dp), intent(out) :: netthrust
@@ -271,10 +271,7 @@ contains
     real(dp) :: netthrust = zero
     integer :: nsteps
     real(dp) :: p
-    real(dp) :: pamb
-    real(dp) :: pref
     real(dp) :: propmass = zero
-    real(dp) :: psipa
     real(dp) :: rgas
     real(dp) :: r
     real(dp) :: rocketmass = zero
@@ -294,8 +291,6 @@ contains
     ! into the tube/chamber and only the inner diameter burns when ignited.
 
     ! propellant burn rate information
-    psipa = 6894.76_dp ! pascals per psi (constant)
-    pref = 3000.0_dp * psipa ! reference pressure (constant)
 
     nsteps = nint(tmax / dt) ! number of time steps
 
@@ -312,8 +307,6 @@ contains
 
     area = pi / 4.0_dp * dia**2.0_dp ! nozzle area
 
-    pamb = 101325.0_dp ! atmospheric pressure
-
     ! calculate initial mass and energy in the chamber
     mcham = p * vol / rgas / t ! use ideal gas law to determine mass in chamber
     echam = mcham * cv * t ! initial internal energy in chamber
@@ -322,15 +315,15 @@ contains
 
     call propwt(id, length, od, rhos,  propmass, rocketmass)
     do i=1,nsteps
-      call burnrate(dt, n, p, pref, rref,  db,  r)
+      call burnrate(dt, n, p, rref,  db,  r)
       call calcsurf(db, dt, id, length, od,  vol,  r, surf)
       call calmdotgen(cp, r, rhos, surf, Tflame,  edotgen, mdotgen) ! [mdot,engy,dsign]= massflow(p1,pamb,t1,tamb,cp,cp,rgas,rgas,g,g,area)
-      call massflow(area, cp, g, p, pamb, rgas, t,  edotos, mdotos)
+      call massflow(area, cp, g, p, rgas, t,  edotos, mdotos)
       call addmass(dt, edotgen, edotos, mdotgen, mdotos,  echam, mcham)
       call calct(cv, echam, mcham,  t)
       call calcp(mcham, rgas, t, vol,  p)
       call calcthrust( &
-          altitude, area, cf, p, pamb, vel,  drag, netthrust, thrust)
+          altitude, area, cf, p, vel,  drag, netthrust, thrust)
       call height( &
           dt, &
           mcham, &
