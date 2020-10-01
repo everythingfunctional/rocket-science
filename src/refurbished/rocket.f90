@@ -16,57 +16,6 @@ module refurbished_mod1
   real(dp), parameter :: tamb = 300.0_dp
   real(dp), parameter :: zero = 0.0_dp
   ! assuminng a 1.1 drag coefficient and
-
-  real(dp) :: accel = zero
-  real(dp) :: altitude = zero
-  real(dp) :: area
-  real(dp) :: cf
-  real(dp) :: cp
-  real(dp) :: cv
-  real(dp) :: db = zero
-  real(dp) :: den ! air density
-  real(dp) :: dia
-  real(dp) :: drag = zero
-  real(dp) :: dsigng
-  real(dp) :: dt
-  real(dp) :: echam
-  real(dp) :: edotgen
-  real(dp) :: edotos
-  real(dp) :: edotout
-  real(dp) :: energy
-  real(dp) :: g
-  integer :: i
-  real(dp) :: id
-  real(dp) :: length
-  real(dp) :: mcham
-  real(dp) :: mdotgen
-  real(dp) :: mdotos = zero
-  real(dp) :: mdotout
-  real(dp) :: mw
-  real(dp) :: n
-  real(dp) :: netthrust = zero
-  integer :: nsteps
-  real(dp) :: od
-  real(dp), allocatable :: output(:,:)
-  real(dp) :: p
-  real(dp) :: pamb
-  real(dp) :: pref
-  real(dp) :: propmass = zero
-  real(dp) :: psipa
-  real(dp) :: rgas
-  real(dp) :: r
-  real(dp) :: rhos
-  real(dp) :: rocketmass = zero
-  real(dp) :: rref
-  real(dp) :: surf
-  real(dp) :: t
-  real(dp) :: texit
-  real(dp) :: Tflame
-  real(dp) :: thrust = zero
-  real(dp) :: time = zero
-  real(dp) :: tmax
-  real(dp) :: vol = one
-  real(dp) :: vel = zero
 end module
 
 module refurbished
@@ -319,56 +268,7 @@ contains
     !! a thrust coefficient and ignoring the complexities of
     !! what happens to thrust at low pressures, i.e. shock in the nozzle
 
-    use refurbished_mod1, only: &
-        accel, &
-        altitude, &
-        area, &
-        cf, &
-        cp, &
-        cv, &
-        db, &
-        den, &
-        dia, &
-        dp, &
-        drag, &
-        dsigng, &
-        dt, &
-        echam, &
-        edotgen, &
-        edotos, &
-        g, &
-        i, &
-        id, &
-        length, &
-        mcham, &
-        mdotgen, &
-        mdotos, &
-        mw, &
-        n, &
-        netthrust, &
-        nsteps, &
-        od, &
-        output, &
-        p, &
-        pamb, &
-        pi, &
-        pref, &
-        propmass, &
-        psipa, &
-        r, &
-        rgas, &
-        rhos, &
-        rref, &
-        rocketmass, &
-        ru, &
-        surf, &
-        t, &
-        Tflame, &
-        thrust, &
-        time, &
-        tmax, &
-        vel, &
-        vol
+    use refurbished_mod1, only: dp, one, pi, ru, zero
 
     real(dp), intent(in) :: dt_
     real(dp), intent(in) :: t_max_
@@ -386,6 +286,57 @@ contains
     real(dp), intent(in) :: dia_
     real(dp), intent(in) :: C_f_
     real(dp), allocatable :: rocket(:,:)
+
+    real(dp) :: accel = zero
+    real(dp) :: altitude = zero
+    real(dp) :: area
+    real(dp) :: cf
+    real(dp) :: cp
+    real(dp) :: cv
+    real(dp) :: db = zero
+    real(dp) :: den ! air density
+    real(dp) :: dia
+    real(dp) :: drag = zero
+    real(dp) :: dsigng
+    real(dp) :: dt
+    real(dp) :: echam
+    real(dp) :: edotgen
+    real(dp) :: edotos
+    real(dp) :: edotout
+    real(dp) :: energy
+    real(dp) :: g
+    integer :: i
+    real(dp) :: id
+    real(dp) :: length
+    real(dp) :: mcham
+    real(dp) :: mdotgen
+    real(dp) :: mdotos = zero
+    real(dp) :: mdotout
+    real(dp) :: mw
+    real(dp) :: n
+    real(dp) :: netthrust = zero
+    integer :: nsteps
+    real(dp) :: od
+    real(dp), allocatable :: output(:,:)
+    real(dp) :: p
+    real(dp) :: pamb
+    real(dp) :: pref
+    real(dp) :: propmass = zero
+    real(dp) :: psipa
+    real(dp) :: rgas
+    real(dp) :: r
+    real(dp) :: rhos
+    real(dp) :: rocketmass = zero
+    real(dp) :: rref
+    real(dp) :: surf
+    real(dp) :: t
+    real(dp) :: texit
+    real(dp) :: Tflame
+    real(dp) :: thrust = zero
+    real(dp) :: time = zero
+    real(dp) :: tmax
+    real(dp) :: vol = one
+    real(dp) :: vel = zero
 
     dt = dt_
     tmax = t_max_
