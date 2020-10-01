@@ -302,8 +302,6 @@ contains
     real(dp) :: echam
     real(dp) :: edotgen
     real(dp) :: edotos
-    real(dp) :: edotout
-    real(dp) :: energy
     real(dp) :: g
     integer :: i
     real(dp) :: id
@@ -311,7 +309,6 @@ contains
     real(dp) :: mcham
     real(dp) :: mdotgen
     real(dp) :: mdotos = zero
-    real(dp) :: mdotout
     real(dp) :: mw
     real(dp) :: n
     real(dp) :: netthrust = zero
@@ -330,7 +327,6 @@ contains
     real(dp) :: rref
     real(dp) :: surf
     real(dp) :: t
-    real(dp) :: texit
     real(dp) :: Tflame
     real(dp) :: thrust = zero
     real(dp) :: time = zero
