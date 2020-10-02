@@ -356,131 +356,207 @@ contains
   end subroutine
 
   function rocket( &
-      dt, &
-      tmax, &
-      cp, &
-      mw, &
-      temperature_, &
-      pressure_, &
-      Tflame, &
-      rref, &
-      n, &
-      id, &
-      od, &
-      length, &
-      rhos, &
-      dia, &
-      cf)
+      time_step_length, &
+      simulation_end_time, &
+      heat_capacity_at_constant_pressure, &
+      molecular_weight, &
+      initial_temperature, &
+      initial_pressure, &
+      flame_temperature, &
+      reference_burn_rate, &
+      burn_rate_exponent, &
+      fuel_inner_diameter, &
+      fuel_outer_diameter, &
+      fuel_length, &
+      fuel_density, &
+      nozzle_diameter, &
+      thrust_correction_factor)
     !! this is a basic program of a single stage
     !! rocket motor flowing out of a nozzle, assuming
     !! a thrust coefficient and ignoring the complexities of
     !! what happens to thrust at low pressures, i.e. shock in the nozzle
-    real(dp), intent(in) :: dt
-    real(dp), intent(in) :: tmax
-    real(dp), intent(in) :: cp
-    real(dp), intent(in) :: mw
-    real(dp), intent(in) :: temperature_
-    real(dp), intent(in) :: pressure_
-    real(dp), intent(in) :: Tflame
-    real(dp), intent(in) :: rref
-    real(dp), intent(in) :: n
-    real(dp), intent(in) :: id
-    real(dp), intent(in) :: od
-    real(dp), intent(in) :: length
-    real(dp), intent(in) :: rhos
-    real(dp), intent(in) :: dia
-    real(dp), intent(in) :: cf
+    real(dp), intent(in) :: time_step_length
+    real(dp), intent(in) :: simulation_end_time
+    real(dp), intent(in) :: heat_capacity_at_constant_pressure
+    real(dp), intent(in) :: molecular_weight
+    real(dp), intent(in) :: initial_temperature
+    real(dp), intent(in) :: initial_pressure
+    real(dp), intent(in) :: flame_temperature
+    real(dp), intent(in) :: reference_burn_rate
+    real(dp), intent(in) :: burn_rate_exponent
+    real(dp), intent(in) :: fuel_inner_diameter
+    real(dp), intent(in) :: fuel_outer_diameter
+    real(dp), intent(in) :: fuel_length
+    real(dp), intent(in) :: fuel_density
+    real(dp), intent(in) :: nozzle_diameter
+    real(dp), intent(in) :: thrust_correction_factor
     real(dp), allocatable :: rocket(:,:)
 
     real(dp), parameter :: ONE = 1.0_dp
     real(dp), parameter :: ZERO = 0.0_dp
-    real(dp) :: accel = ZERO
+    real(dp) :: acceleration = ZERO
     real(dp) :: altitude = ZERO
-    real(dp) :: area
-    real(dp) :: cv
-    real(dp) :: db = ZERO
+    real(dp) :: burn_depth = ZERO
+    real(dp) :: burn_rate
+    real(dp) :: burning_surface_area
+    real(dp) :: chamber_energy
+    real(dp) :: chamber_mass
+    real(dp) :: chamber_pressure
+    real(dp) :: chamber_temperature
+    real(dp) :: chamber_volume = ONE
     real(dp) :: drag = ZERO
-    real(dp) :: echam
-    real(dp) :: edotgen
-    real(dp) :: edotos
-    real(dp) :: g
+    real(dp) :: energy_generation_rate
+    real(dp) :: energy_outflow_rate
+    real(dp) :: flow_area
+    real(dp) :: fuel_mass = ZERO
+    real(dp) :: heat_capacity_at_constant_volume
+    real(dp) :: heat_capacity_ratio
     integer :: i
-    real(dp) :: mcham
-    real(dp) :: mdotgen
-    real(dp) :: mdotos = ZERO
-    real(dp) :: netthrust = ZERO
-    integer :: nsteps
-    real(dp) :: p
-    real(dp) :: propmass = ZERO
-    real(dp) :: rgas
-    real(dp) :: r
-    real(dp) :: rocketmass = ZERO
-    real(dp) :: surf
-    real(dp) :: t
+    real(dp) :: mass_generation_rate
+    real(dp) :: mass_outflow_rate = ZERO
+    real(dp) :: net_thrust = ZERO
+    integer :: num_time_steps
+    real(dp) :: rocket_mass = ZERO
+    real(dp) :: specific_gas_constant
     real(dp) :: thrust = ZERO
     real(dp) :: time = ZERO
-    real(dp) :: vol = ONE
-    real(dp) :: vel = ZERO
+    real(dp) :: velocity = ZERO
 
-    t = temperature_
-    p = pressure_
-
-    ! propellent grain is a cylinder burning radially outward and axially inward from one end.
-    ! the other end is considered inhibited.
-    ! outer diameter is inhibited because this is a cast propellent: it was poured
-    ! into the tube/chamber and only the inner diameter burns when ignited.
-
-    ! propellant burn rate information
-
-    nsteps = nint(tmax / dt) ! number of time steps
-
-    ! preallocate an output file for simulation infomration
-    allocate(rocket(0:nsteps, 11))
-
-    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!11
-
-    !! now begin calculating and initializing
-    ! gas variables
-    rgas = UNIVERSAL_GAS_CONSTANT / mw
-    cv = cp - rgas
-    g = cp / cv
-
-    area = PI / 4.0_dp * dia**2 ! nozzle area
-
-    ! calculate initial mass and energy in the chamber
-    mcham = p * vol / rgas / t ! use ideal gas law to determine mass in chamber
-    echam = mcham * cv * t ! initial internal energy in chamber
-
-    rocket(0,:) = [time, p, t, mdotos, thrust, drag, netthrust, vol, accel, vel, altitude]
+    chamber_temperature = initial_temperature
+    chamber_pressure = initial_pressure
+    num_time_steps = nint(simulation_end_time / time_step_length)
+    allocate(rocket(0:num_time_steps, 11))
+    specific_gas_constant = UNIVERSAL_GAS_CONSTANT / molecular_weight
+    heat_capacity_at_constant_volume = &
+        heat_capacity_at_constant_pressure - specific_gas_constant
+    heat_capacity_ratio = &
+        heat_capacity_at_constant_pressure / heat_capacity_at_constant_volume
+    flow_area = PI / 4.0_dp * nozzle_diameter**2
+    chamber_mass = &
+        chamber_pressure &
+        * chamber_volume &
+        / specific_gas_constant &
+        / chamber_temperature
+    chamber_energy = &
+        chamber_mass * heat_capacity_at_constant_volume * chamber_temperature
+    rocket(0,:) = [ &
+        time, &
+        chamber_pressure, &
+        chamber_temperature, &
+        mass_outflow_rate, &
+        thrust, &
+        drag, &
+        net_thrust, &
+        chamber_volume, &
+        acceleration, &
+        velocity, &
+        altitude]
 
     call initialize_fuel_and_rocket_mass( &
-        id, length, od, rhos,  propmass, rocketmass)
-    do i=1,nsteps
-      call update_burn_rate_and_depth(dt, n, p, rref,  db,  r)
-      call update_combustion_progress(db, dt, id, length, od, r, vol, surf)
+        fuel_inner_diameter, &
+        fuel_length, &
+        fuel_outer_diameter, &
+        fuel_density, &
+
+        fuel_mass, &
+        rocket_mass)
+    do i = 1, num_time_steps
+      call update_burn_rate_and_depth( &
+          time_step_length, &
+          burn_rate_exponent, &
+          chamber_pressure, &
+          reference_burn_rate, &
+
+          burn_depth, &
+
+          burn_rate)
+      call update_combustion_progress( &
+          burn_depth, &
+          time_step_length, &
+          fuel_inner_diameter, &
+          fuel_length, &
+          fuel_outer_diameter, &
+
+          burn_rate, &
+          chamber_volume, &
+
+          burning_surface_area)
       call calculate_generation_rates( &
-          cp, r, rhos, surf, Tflame,  edotgen, mdotgen)
-      call calculate_flow_rates(area, cp, g, p, rgas, t,  edotos, mdotos)
+          heat_capacity_at_constant_pressure, &
+          burn_rate, &
+          fuel_density, &
+          burning_surface_area, &
+          flame_temperature, &
+
+          energy_generation_rate, &
+          mass_generation_rate)
+      call calculate_flow_rates( &
+          flow_area, &
+          heat_capacity_at_constant_pressure, &
+          heat_capacity_ratio, &
+          chamber_pressure, &
+          specific_gas_constant, &
+          chamber_temperature, &
+
+          energy_outflow_rate, &
+          mass_outflow_rate)
       call update_chamber_contents( &
-          dt, edotgen, edotos, mdotgen, mdotos,  echam, mcham)
-      call calculate_temperature(cv, echam, mcham,  t)
-      call calculate_pressure(mcham, rgas, t, vol,  p)
+          time_step_length, &
+          energy_generation_rate, &
+          energy_outflow_rate, &
+          mass_generation_rate, &
+          mass_outflow_rate, &
+
+          chamber_energy, &
+          chamber_mass)
+      call calculate_temperature( &
+          heat_capacity_at_constant_volume, &
+          chamber_energy, &
+          chamber_mass, &
+
+          chamber_temperature)
+      call calculate_pressure( &
+          chamber_mass, &
+          specific_gas_constant, &
+          chamber_temperature, &
+          chamber_volume, &
+
+          chamber_pressure)
       call calculate_thrust( &
-          altitude, area, cf, p, vel,  drag, netthrust, thrust)
+          altitude, &
+          flow_area, &
+          thrust_correction_factor, &
+          chamber_pressure, &
+          velocity, &
+
+          drag, &
+          net_thrust, &
+          thrust)
       call update_trajectory( &
-          dt, &
-          mcham, &
-          mdotgen, &
-          netthrust, &
-          rocketmass, &
+          time_step_length, &
+          chamber_mass, &
+          mass_generation_rate, &
+          net_thrust, &
+          rocket_mass, &
 
           altitude, &
-          propmass, &
-          vel, &
+          fuel_mass, &
+          velocity, &
 
-          accel)
-      time = time + dt
-      rocket(i,:) = [time, p, t, mdotos, thrust, drag, netthrust, vol, accel, vel, altitude]
+          acceleration)
+      time = time + time_step_length
+      rocket(i,:) = [ &
+          time, &
+          chamber_pressure, &
+          chamber_temperature, &
+          mass_outflow_rate, &
+          thrust, &
+          drag, &
+          net_thrust, &
+          chamber_volume, &
+          acceleration, &
+          velocity, &
+          altitude]
     end do
   end function
 end module
