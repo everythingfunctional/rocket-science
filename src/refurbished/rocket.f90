@@ -14,17 +14,30 @@ module refurbished
   real(dp), parameter :: PI = 3.1415926539_dp
   real(dp), parameter :: UNIVERSAL_GAS_CONSTANT = 8314.0_dp
 contains
-  subroutine propwt(id, length, od, rhos,  propmass, rocketmass)
-    ! calculate weight of propellent
-    real(dp), intent(in) :: id
-    real(dp), intent(in) :: length
-    real(dp), intent(in) :: od
-    real(dp), intent(in) :: rhos
-    real(dp), intent(out) :: propmass
-    real(dp), intent(out) :: rocketmass
+  subroutine initialize_fuel_and_rocket_mass( &
+      fuel_inner_diameter, &
+      fuel_length, &
+      fuel_outer_diameter, &
+      fuel_density,  &
 
-    propmass = PI / 4.0_dp * (od**2 - id**2) * length * rhos
-    rocketmass = 0.15_dp * propmass ! assume 85% propellant loading and 15% extra wt of rocket
+      fuel_mass, &
+      rocket_mass)
+    real(dp), intent(in) :: fuel_inner_diameter
+    real(dp), intent(in) :: fuel_length
+    real(dp), intent(in) :: fuel_outer_diameter
+    real(dp), intent(in) :: fuel_density
+    real(dp), intent(out) :: fuel_mass
+    real(dp), intent(out) :: rocket_mass
+
+    associate( &
+        id => fuel_inner_diameter, &
+        od => fuel_outer_diameter, &
+        l => fuel_length)
+      associate(fuel_volume => PI * (od**2 - id**2) / 4.0_dp * l)
+        fuel_mass = fuel_volume * fuel_density
+      end associate
+    end associate
+    rocket_mass = 0.15_dp * fuel_mass
   end subroutine
 
   subroutine burnrate(dt, n, p, rref,  db,  r)
@@ -314,7 +327,8 @@ contains
 
     rocket(0,:) = [time, p, t, mdotos, thrust, drag, netthrust, vol, accel, vel, altitude]
 
-    call propwt(id, length, od, rhos,  propmass, rocketmass)
+    call initialize_fuel_and_rocket_mass( &
+        id, length, od, rhos,  propmass, rocketmass)
     do i=1,nsteps
       call burnrate(dt, n, p, rref,  db,  r)
       call calcsurf(db, dt, id, length, od,  vol,  r, surf)
