@@ -114,17 +114,26 @@ contains
         + burn_rate*burning_surface_area*time_step_length
   end subroutine
 
-  subroutine calmdotgen(cp, r, rhos, surf, Tflame,  edotgen, mdotgen)
-    real(dp), intent(in) :: cp
-    real(dp), intent(in) :: r
-    real(dp), intent(in) :: rhos
-    real(dp), intent(in) :: surf
-    real(dp), intent(in) :: Tflame
-    real(dp), intent(out) :: edotgen
-    real(dp), intent(out) :: mdotgen
+  subroutine calculate_generation_rates( &
+      specific_heat_capacity, &
+      burn_rate, &
+      fuel_density, &
+      burning_surface_area, &
+      flame_temperature, &
 
-    mdotgen = rhos * r * surf
-    edotgen = mdotgen * cp * Tflame
+      energy_generation_rate, &
+      mass_generation_rate)
+    real(dp), intent(in) :: specific_heat_capacity
+    real(dp), intent(in) :: burn_rate
+    real(dp), intent(in) :: fuel_density
+    real(dp), intent(in) :: burning_surface_area
+    real(dp), intent(in) :: flame_temperature
+    real(dp), intent(out) :: energy_generation_rate
+    real(dp), intent(out) :: mass_generation_rate
+
+    mass_generation_rate = fuel_density * burn_rate * burning_surface_area
+    energy_generation_rate = &
+        mass_generation_rate * specific_heat_capacity * flame_temperature
   end subroutine
 
   subroutine massflow(area, cp, g, p, rgas, t,  edotos, mdotos)
@@ -370,7 +379,8 @@ contains
     do i=1,nsteps
       call update_burn_rate_and_depth(dt, n, p, rref,  db,  r)
       call update_combustion_progress(db, dt, id, length, od, r, vol, surf)
-      call calmdotgen(cp, r, rhos, surf, Tflame,  edotgen, mdotgen) ! [mdot,engy,dsign]= massflow(p1,ATMOSPHERIC_PRESSURE,t1,AMBIENT_TEMPERATURE,cp,cp,rgas,rgas,g,g,area)
+      call calculate_generation_rates( &
+          cp, r, rhos, surf, Tflame,  edotgen, mdotgen)
       call massflow(area, cp, g, p, rgas, t,  edotos, mdotos)
       call addmass(dt, edotgen, edotos, mdotgen, mdotos,  echam, mcham)
       call calct(cv, echam, mcham,  t)
