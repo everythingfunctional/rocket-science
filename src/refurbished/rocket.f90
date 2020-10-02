@@ -8,19 +8,11 @@ module refurbished
   integer, parameter :: range = 307
   integer, parameter :: dp = selected_real_kind(precision, range)
 
-  real(dp), parameter :: DRAG_COEFFICIENT = 1.1_dp
-  real(dp), parameter :: GRAVITY = 9.81_dp
-  real(dp), parameter :: MOLECULAR_WEIGHT_OF_AIR = 28.96_dp
-  real(dp), parameter :: ONE = 1.0_dp
-  real(dp), parameter :: ATMOSPHERIC_PRESSURE = 101325.0_dp
-  real(dp), parameter :: PI = 3.1415926539_dp
-  real(dp), parameter :: PASCALS_PER_PSI = 6894.76_dp
-  real(dp), parameter :: REFERENCE_PRESSURE = 3000.0_dp * PASCALS_PER_PSI
-  real(dp), parameter :: REFERENCE_AIR_DENSITY = 1.225_dp
-  real(dp), parameter :: UNIVERSAL_GAS_CONSTANT = 8314.0_dp
-  real(dp), parameter :: ROCKET_SURFACE_AREA = PI / 4.0_dp
   real(dp), parameter :: AMBIENT_TEMPERATURE = 300.0_dp
-  real(dp), parameter :: ZERO = 0.0_dp
+  real(dp), parameter :: ATMOSPHERIC_PRESSURE = 101325.0_dp
+  real(dp), parameter :: GRAVITY = 9.81_dp
+  real(dp), parameter :: PI = 3.1415926539_dp
+  real(dp), parameter :: UNIVERSAL_GAS_CONSTANT = 8314.0_dp
 contains
   subroutine propwt(id, length, od, rhos,  propmass, rocketmass)
     ! calculate weight of propellent
@@ -42,6 +34,9 @@ contains
     real(dp), intent(in) :: rref
     real(dp), intent(inout) :: db
     real(dp), intent(out) :: r
+
+    real(dp), parameter :: PASCALS_PER_PSI = 6894.76_dp
+    real(dp), parameter :: REFERENCE_PRESSURE = 3000.0_dp * PASCALS_PER_PSI
 
     r = rref * (p/REFERENCE_PRESSURE)**n ! calculate burn rate
     db = db + r*dt ! calculate incremental burn distance
@@ -181,6 +176,10 @@ contains
     real(dp), intent(out) :: netthrust
     real(dp), intent(out) :: thrust
 
+    real(dp), parameter :: DRAG_COEFFICIENT = 1.1_dp
+    real(dp), parameter :: MOLECULAR_WEIGHT_OF_AIR = 28.96_dp
+    real(dp), parameter :: REFERENCE_AIR_DENSITY = 1.225_dp
+    real(dp), parameter :: ROCKET_SURFACE_AREA = PI / 4.0_dp
     real(dp) :: den
 
     thrust = (p - ATMOSPHERIC_PRESSURE) * area * cf ! correction to thrust (actual vs vacuum thrust)
@@ -254,6 +253,8 @@ contains
     real(dp), intent(in) :: cf
     real(dp), allocatable :: rocket(:,:)
 
+    real(dp), parameter :: ONE = 1.0_dp
+    real(dp), parameter :: ZERO = 0.0_dp
     real(dp) :: accel = ZERO
     real(dp) :: altitude = ZERO
     real(dp) :: area
@@ -305,7 +306,7 @@ contains
     cv = cp - rgas
     g = cp / cv
 
-    area = PI / 4.0_dp * dia**2.0_dp ! nozzle area
+    area = PI / 4.0_dp * dia**2 ! nozzle area
 
     ! calculate initial mass and energy in the chamber
     mcham = p * vol / rgas / t ! use ideal gas law to determine mass in chamber
