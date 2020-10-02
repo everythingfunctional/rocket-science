@@ -327,32 +327,32 @@ contains
     net_thrust = thrust + drag
   end subroutine
 
-  subroutine height( &
-      dt, &
-      mcham, &
-      mdotgen, &
-      netthrust, &
-      rocketmass, &
+  subroutine update_trajectory( &
+      time_step_length, &
+      chamber_mass, &
+      mass_generation_rate, &
+      net_thrust, &
+      rocket_mass, &
 
       altitude, &
-      propmass, &
-      vel, &
+      fuel_mass, &
+      velocity, &
 
-      accel)
-    real(dp), intent(in) :: dt
-    real(dp), intent(in) :: mcham
-    real(dp), intent(in) :: mdotgen
-    real(dp), intent(in) :: netthrust
-    real(dp), intent(in) :: rocketmass
+      acceleration)
+    real(dp), intent(in) :: time_step_length
+    real(dp), intent(in) :: chamber_mass
+    real(dp), intent(in) :: mass_generation_rate
+    real(dp), intent(in) :: net_thrust
+    real(dp), intent(in) :: rocket_mass
     real(dp), intent(inout) :: altitude
-    real(dp), intent(inout) :: propmass
-    real(dp), intent(inout) :: vel
-    real(dp), intent(out) :: accel
+    real(dp), intent(inout) :: fuel_mass
+    real(dp), intent(inout) :: velocity
+    real(dp), intent(out) :: acceleration
 
-    propmass = propmass - mdotgen*dt ! incremental change in propellant mass
-    accel = netthrust / (propmass + rocketmass + mcham) - GRAVITY
-    vel = vel + accel*dt
-    altitude = altitude + vel*dt
+    fuel_mass = fuel_mass - mass_generation_rate*time_step_length
+    acceleration = net_thrust / (fuel_mass + rocket_mass + chamber_mass) - GRAVITY
+    velocity = velocity + acceleration*time_step_length
+    altitude = altitude + velocity*time_step_length
   end subroutine
 
   function rocket( &
@@ -467,7 +467,7 @@ contains
       call calculate_pressure(mcham, rgas, t, vol,  p)
       call calculate_thrust( &
           altitude, area, cf, p, vel,  drag, netthrust, thrust)
-      call height( &
+      call update_trajectory( &
           dt, &
           mcham, &
           mdotgen, &
