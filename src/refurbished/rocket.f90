@@ -115,7 +115,7 @@ contains
   end subroutine
 
   subroutine calculate_generation_rates( &
-      specific_heat_capacity, &
+      heat_capacity_at_constant_pressure, &
       burn_rate, &
       fuel_density, &
       burning_surface_area, &
@@ -123,7 +123,7 @@ contains
 
       energy_generation_rate, &
       mass_generation_rate)
-    real(dp), intent(in) :: specific_heat_capacity
+    real(dp), intent(in) :: heat_capacity_at_constant_pressure
     real(dp), intent(in) :: burn_rate
     real(dp), intent(in) :: fuel_density
     real(dp), intent(in) :: burning_surface_area
@@ -133,64 +133,95 @@ contains
 
     mass_generation_rate = fuel_density * burn_rate * burning_surface_area
     energy_generation_rate = &
-        mass_generation_rate * specific_heat_capacity * flame_temperature
+        mass_generation_rate * heat_capacity_at_constant_pressure * flame_temperature
   end subroutine
 
-  subroutine massflow(area, cp, g, p, rgas, t,  edotos, mdotos)
-    real(dp), intent(in) :: area
-    real(dp), intent(in) :: cp
-    real(dp), intent(in) :: g
-    real(dp), intent(in) :: p
-    real(dp), intent(in) :: rgas
-    real(dp), intent(in) :: t
-    real(dp), intent(out) :: edotos
-    real(dp), intent(out) :: mdotos
+  subroutine calculate_flow_rates( &
+      flow_area, &
+      heat_capacity_at_constant_pressure, &
+      heat_capacity_ratio, &
+      chamber_pressure, &
+      specific_gas_constant, &
+      chamber_temperature, &
 
-    real(dp) :: cstar
-    real(dp) :: dsigng
-    real(dp) :: engyx
-    real(dp) :: facx
-    real(dp) :: hx
-    real(dp) :: mdtx
-    real(dp) :: pcrit
-    real(dp) :: pratio
-    real(dp) :: px
-    real(dp) :: term1
-    real(dp) :: term2
-    real(dp) :: tx
+      energy_outflow_rate, &
+      mass_outflow_rate)
+    real(dp), intent(in) :: flow_area
+    real(dp), intent(in) :: heat_capacity_at_constant_pressure
+    real(dp), intent(in) :: heat_capacity_ratio
+    real(dp), intent(in) :: chamber_pressure
+    real(dp), intent(in) :: specific_gas_constant
+    real(dp), intent(in) :: chamber_temperature
+    real(dp), intent(out) :: energy_outflow_rate
+    real(dp), intent(out) :: mass_outflow_rate
 
-    mdotos = 0.0_dp
-    edotos = 0.0_dp ! initially set them to zero prior to running this loop
+    real(dp) :: critical_pressure_ratio
+    real(dp) :: energy_flow_rate
+    real(dp) :: f1
+    real(dp) :: f2
+    real(dp) :: f3
+    real(dp) :: flow_direction
+    real(dp) :: flow_enthalpy
+    real(dp) :: flow_pressure
+    real(dp) :: flow_speed
+    real(dp) :: flow_temperature
+    real(dp) :: mass_flow_rate
+    real(dp) :: pressure_ratio
 
-    if (p.GT.ATMOSPHERIC_PRESSURE) then
-      dsigng = 1.0_dp
-      tx = t
-      px = p
-      hx = cp * t
-      pratio = p / ATMOSPHERIC_PRESSURE
+    mass_outflow_rate = 0.0_dp
+    energy_outflow_rate = 0.0_dp ! initially set them to zero prior to running this loop
+
+    if (chamber_pressure.GT.ATMOSPHERIC_PRESSURE) then
+      flow_direction = 1.0_dp
+      flow_temperature = chamber_temperature
+      flow_pressure = chamber_pressure
+      flow_enthalpy = heat_capacity_at_constant_pressure * chamber_temperature
+      pressure_ratio = chamber_pressure / ATMOSPHERIC_PRESSURE
     else
-      dsigng = -1.0_dp
-      tx = AMBIENT_TEMPERATURE
-      px = ATMOSPHERIC_PRESSURE
-      hx = cp * AMBIENT_TEMPERATURE
-      pratio = ATMOSPHERIC_PRESSURE / p
+      flow_direction = -1.0_dp
+      flow_temperature = AMBIENT_TEMPERATURE
+      flow_pressure = ATMOSPHERIC_PRESSURE
+      flow_enthalpy = heat_capacity_at_constant_pressure * AMBIENT_TEMPERATURE
+      pressure_ratio = ATMOSPHERIC_PRESSURE / chamber_pressure
     end if
 
-    pcrit = (2.0_dp / (g + 1.0_dp))**(g / (g - 1.0_dp))
-    if ((1.0_dp / pratio) .LT. pcrit) then
+    associate( &
+        cp => critical_pressure_ratio, &
+        g => heat_capacity_ratio)
+      cp = (2.0_dp / (g + 1.0_dp))**(g / (g - 1.0_dp))
+    end associate
+    if ((1.0_dp / pressure_ratio) < critical_pressure_ratio) then
       ! choked flow
-      cstar = sqrt((1.0_dp / g) * ((g + 1.0_dp) / 2.0_dp)**((g + 1.0_dp) / (g - 1.0_dp)) * rgas * tx)
-      mdtx= px * area / cstar
+      associate( &
+          g => heat_capacity_ratio, &
+          r => specific_gas_constant, &
+          t => flow_temperature)
+        flow_speed = &
+            sqrt( &
+                (1.0_dp / g) &
+                * ((g + 1.0_dp) / 2.0_dp)**((g + 1.0_dp) / (g - 1.0_dp)) &
+                * r * t)
+      end associate
+      mass_flow_rate = flow_pressure * flow_area / flow_speed
     else
       ! unchoked flow
-      facx = pratio**((g - 1.0_dp) / g)
-      term1 = sqrt(g * rgas * tx / facx)
-      term2 = sqrt((facx - 1.0_dp) / (g - 1.0_dp))
-      mdtx = sqrt(2.0_dp) * px / pratio / rgas / tx * facx * term1 * term2 * area
+      f1 = pressure_ratio**((heat_capacity_ratio - 1.0_dp) / heat_capacity_ratio)
+      f2 = sqrt(heat_capacity_ratio * specific_gas_constant * flow_temperature / f1)
+      f3 = sqrt((f1 - 1.0_dp) / (heat_capacity_ratio - 1.0_dp))
+      mass_flow_rate = &
+          sqrt(2.0_dp) &
+          * flow_pressure &
+          / pressure_ratio &
+          / specific_gas_constant &
+          / flow_temperature &
+          * f1 &
+          * f2 &
+          * f3 &
+          * flow_area
     end if
-    engyx = mdtx * hx  ! reformulate based on enthalpy of the chamber
-    mdotos = mdtx * dsigng ! exiting mass flow (could be negative "dsigng")
-    edotos = engyx * dsigng ! exiting enthalpy
+    energy_flow_rate = mass_flow_rate * flow_enthalpy
+    mass_outflow_rate = mass_flow_rate * flow_direction
+    energy_outflow_rate = energy_flow_rate * flow_direction
   end subroutine
 
   subroutine addmass(dt, edotgen, edotos, mdotgen, mdotos,  echam, mcham)
@@ -381,7 +412,7 @@ contains
       call update_combustion_progress(db, dt, id, length, od, r, vol, surf)
       call calculate_generation_rates( &
           cp, r, rhos, surf, Tflame,  edotgen, mdotgen)
-      call massflow(area, cp, g, p, rgas, t,  edotos, mdotos)
+      call calculate_flow_rates(area, cp, g, p, rgas, t,  edotos, mdotos)
       call addmass(dt, edotgen, edotos, mdotgen, mdotos,  echam, mcham)
       call calct(cv, echam, mcham,  t)
       call calcp(mcham, rgas, t, vol,  p)
