@@ -18,7 +18,7 @@ contains
       fuel_inner_diameter, &
       fuel_length, &
       fuel_outer_diameter, &
-      fuel_density,  &
+      fuel_density, &
 
       fuel_mass, &
       rocket_mass)
@@ -40,19 +40,33 @@ contains
     rocket_mass = 0.15_dp * fuel_mass
   end subroutine
 
-  subroutine burnrate(dt, n, p, rref,  db,  r)
-    real(dp), intent(in) :: dt
-    real(dp), intent(in) :: n
-    real(dp), intent(in) :: p
-    real(dp), intent(in) :: rref
-    real(dp), intent(inout) :: db
-    real(dp), intent(out) :: r
+  subroutine update_burn_rate_and_depth( &
+      time_step_length, &
+      burn_rate_exponent, &
+      pressure, &
+      reference_burn_rate, &
+
+      burn_depth, &
+
+      burn_rate)
+    real(dp), intent(in) :: time_step_length
+    real(dp), intent(in) :: burn_rate_exponent
+    real(dp), intent(in) :: pressure
+    real(dp), intent(in) :: reference_burn_rate
+    real(dp), intent(inout) :: burn_depth
+    real(dp), intent(out) :: burn_rate
 
     real(dp), parameter :: PASCALS_PER_PSI = 6894.76_dp
     real(dp), parameter :: REFERENCE_PRESSURE = 3000.0_dp * PASCALS_PER_PSI
 
-    r = rref * (p/REFERENCE_PRESSURE)**n ! calculate burn rate
-    db = db + r*dt ! calculate incremental burn distance
+    associate( &
+        rbr => reference_burn_rate, &
+        p => pressure, &
+        p_r => REFERENCE_PRESSURE, &
+        n => burn_rate_exponent)
+      burn_rate = rbr * (p/p_r)**n
+    end associate
+    burn_depth = burn_depth + burn_rate*time_step_length
   end subroutine
 
   subroutine calcsurf(db, dt, id, length, od,  vol,  r, surf)
@@ -330,7 +344,7 @@ contains
     call initialize_fuel_and_rocket_mass( &
         id, length, od, rhos,  propmass, rocketmass)
     do i=1,nsteps
-      call burnrate(dt, n, p, rref,  db,  r)
+      call update_burn_rate_and_depth(dt, n, p, rref,  db,  r)
       call calcsurf(db, dt, id, length, od,  vol,  r, surf)
       call calmdotgen(cp, r, rhos, surf, Tflame,  edotgen, mdotgen) ! [mdot,engy,dsign]= massflow(p1,ATMOSPHERIC_PRESSURE,t1,AMBIENT_TEMPERATURE,cp,cp,rgas,rgas,g,g,area)
       call massflow(area, cp, g, p, rgas, t,  edotos, mdotos)
