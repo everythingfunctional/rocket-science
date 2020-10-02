@@ -231,38 +231,54 @@ contains
       mass_generation_rate, &
       mass_outflow_rate, &
 
-      energy, &
-      mass)
+      chamber_energy, &
+      chamber_mass)
     real(dp), intent(in) :: time_step_length
     real(dp), intent(in) :: energy_generation_rate
     real(dp), intent(in) :: energy_outflow_rate
     real(dp), intent(in) :: mass_generation_rate
     real(dp), intent(in) :: mass_outflow_rate
-    real(dp), intent(inout) :: energy
-    real(dp), intent(inout) :: mass
+    real(dp), intent(inout) :: chamber_energy
+    real(dp), intent(inout) :: chamber_mass
 
-    mass = mass + (mass_generation_rate - mass_outflow_rate) * time_step_length
-    energy = energy + (energy_generation_rate - energy_outflow_rate) * time_step_length
+    chamber_mass = &
+        chamber_mass &
+        + (mass_generation_rate - mass_outflow_rate) * time_step_length
+    chamber_energy = &
+        chamber_energy &
+        + (energy_generation_rate - energy_outflow_rate) * time_step_length
   end subroutine
 
   subroutine calculate_temperature( &
-      heat_capacity_at_constant_volume, energy, mass,  temperature)
-    real(dp), intent(in) :: heat_capacity_at_constant_volume
-    real(dp), intent(in) :: energy
-    real(dp), intent(in) :: mass
-    real(dp), intent(out) :: temperature
+      heat_capacity_at_constant_volume, &
+      chamber_energy, &
+      chamber_mass, &
 
-    temperature = energy / mass / heat_capacity_at_constant_volume
+      chamber_temperature)
+    real(dp), intent(in) :: heat_capacity_at_constant_volume
+    real(dp), intent(in) :: chamber_energy
+    real(dp), intent(in) :: chamber_mass
+    real(dp), intent(out) :: chamber_temperature
+
+    chamber_temperature = &
+        chamber_energy / chamber_mass / heat_capacity_at_constant_volume
   end subroutine
 
-  subroutine calcp(mcham, rgas, t, vol,  p)
-    real(dp), intent(in) :: mcham
-    real(dp), intent(in) :: rgas
-    real(dp), intent(in) :: t
-    real(dp), intent(in) :: vol
-    real(dp), intent(out) :: p
+  subroutine calculate_pressure( &
+      chamber_mass, &
+      specific_gas_constant, &
+      chamber_temperature, &
+      chamber_volume, &
 
-    p = mcham * rgas * t / vol
+      chamber_pressure)
+    real(dp), intent(in) :: chamber_mass
+    real(dp), intent(in) :: specific_gas_constant
+    real(dp), intent(in) :: chamber_temperature
+    real(dp), intent(in) :: chamber_volume
+    real(dp), intent(out) :: chamber_pressure
+
+    chamber_pressure = &
+        chamber_mass * specific_gas_constant * chamber_temperature / chamber_volume
   end subroutine
 
   subroutine calcthrust( &
@@ -425,7 +441,7 @@ contains
       call update_chamber_contents( &
           dt, edotgen, edotos, mdotgen, mdotos,  echam, mcham)
       call calculate_temperature(cv, echam, mcham,  t)
-      call calcp(mcham, rgas, t, vol,  p)
+      call calculate_pressure(mcham, rgas, t, vol,  p)
       call calcthrust( &
           altitude, area, cf, p, vel,  drag, netthrust, thrust)
       call height( &
