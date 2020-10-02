@@ -69,25 +69,49 @@ contains
     burn_depth = burn_depth + burn_rate*time_step_length
   end subroutine
 
-  subroutine calcsurf(db, dt, id, length, od,  vol,  r, surf)
-    ! cylinder burning from id outward and from both ends along the length
-    real(dp), intent(in) :: db
-    real(dp), intent(in) :: dt
-    real(dp), intent(in) :: id
-    real(dp), intent(in) :: length
-    real(dp), intent(in) :: od
-    real(dp), intent(inout) :: vol
-    real(dp), intent(out) :: r
-    real(dp), intent(out) :: surf
+  subroutine update_combustion_progress( &
+      burn_depth, &
+      time_step_length, &
+      fuel_inner_diameter, &
+      fuel_length, &
+      fuel_outer_diameter, &
 
-    surf = PI * (id + 2.0_dp*db) * (length - 2.0_dp*db) + PI * (od**2 - (id + 2.0_dp*db)**2) * 0.5_dp
+      burn_rate, &
+      chamber_volume, &
 
-    if (id + 2.0_dp*db .gt. od .or. db.gt.length/2.0_dp) then
-      surf = 0.0_dp ! we hit the wall and burned out
-      r = 0.0_dp ! turn off burn rate so burn distance stops increasing
-    end if
+      burning_surface_area)
+    real(dp), intent(in) :: burn_depth
+    real(dp), intent(in) :: time_step_length
+    real(dp), intent(in) :: fuel_inner_diameter
+    real(dp), intent(in) :: fuel_length
+    real(dp), intent(in) :: fuel_outer_diameter
+    real(dp), intent(inout) :: burn_rate
+    real(dp), intent(inout) :: chamber_volume
+    real(dp), intent(out) :: burning_surface_area
 
-    vol = vol + r*surf*dt ! increment the interior volume of the chamber a little
+    associate( &
+        id => fuel_inner_diameter, &
+        od => fuel_outer_diameter, &
+        l => fuel_length, &
+        d => burn_depth)
+      associate( &
+          new_l => l - 2.0_dp*d, &
+          new_id => id + 2.0_dp*d)
+        ! cylinder burning from inside and both ends
+        burning_surface_area = &
+            PI * new_id * new_l &
+            + PI * (od**2 - new_id**2) / 4.0_dp * 2.0_dp
+        if (new_id > od .or. new_l < 0.0_dp) then
+          burning_surface_area = 0.0_dp ! we hit the wall and burned out
+          burn_rate = 0.0_dp ! turn off burn rate so burn distance stops increasing
+        end if
+      end associate
+    end associate
+
+    ! increment the interior volume of the chamber
+    chamber_volume = &
+        chamber_volume &
+        + burn_rate*burning_surface_area*time_step_length
   end subroutine
 
   subroutine calmdotgen(cp, r, rhos, surf, Tflame,  edotgen, mdotgen)
@@ -345,7 +369,7 @@ contains
         id, length, od, rhos,  propmass, rocketmass)
     do i=1,nsteps
       call update_burn_rate_and_depth(dt, n, p, rref,  db,  r)
-      call calcsurf(db, dt, id, length, od,  vol,  r, surf)
+      call update_combustion_progress(db, dt, id, length, od, r, vol, surf)
       call calmdotgen(cp, r, rhos, surf, Tflame,  edotgen, mdotgen) ! [mdot,engy,dsign]= massflow(p1,ATMOSPHERIC_PRESSURE,t1,AMBIENT_TEMPERATURE,cp,cp,rgas,rgas,g,g,area)
       call massflow(area, cp, g, p, rgas, t,  edotos, mdotos)
       call addmass(dt, edotgen, edotos, mdotgen, mdotos,  echam, mcham)
