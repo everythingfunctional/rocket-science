@@ -245,13 +245,14 @@ contains
     energy = energy + (energy_generation_rate - energy_outflow_rate) * time_step_length
   end subroutine
 
-  subroutine calct(cv, echam, mcham,  t)
-    real(dp), intent(in) :: cv
-    real(dp), intent(in) :: echam
-    real(dp), intent(in) :: mcham
-    real(dp), intent(out) :: t
+  subroutine calculate_temperature( &
+      heat_capacity_at_constant_volume, energy, mass,  temperature)
+    real(dp), intent(in) :: heat_capacity_at_constant_volume
+    real(dp), intent(in) :: energy
+    real(dp), intent(in) :: mass
+    real(dp), intent(out) :: temperature
 
-    t = echam / mcham / cv
+    temperature = energy / mass / heat_capacity_at_constant_volume
   end subroutine
 
   subroutine calcp(mcham, rgas, t, vol,  p)
@@ -423,7 +424,7 @@ contains
       call calculate_flow_rates(area, cp, g, p, rgas, t,  edotos, mdotos)
       call update_chamber_contents( &
           dt, edotgen, edotos, mdotgen, mdotos,  echam, mcham)
-      call calct(cv, echam, mcham,  t)
+      call calculate_temperature(cv, echam, mcham,  t)
       call calcp(mcham, rgas, t, vol,  p)
       call calcthrust( &
           altitude, area, cf, p, vel,  drag, netthrust, thrust)
