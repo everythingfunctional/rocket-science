@@ -224,17 +224,25 @@ contains
     energy_outflow_rate = energy_flow_rate * flow_direction
   end subroutine
 
-  subroutine addmass(dt, edotgen, edotos, mdotgen, mdotos,  echam, mcham)
-    real(dp), intent(in) :: dt
-    real(dp), intent(in) :: edotgen
-    real(dp), intent(in) :: edotos
-    real(dp), intent(in) :: mdotgen
-    real(dp), intent(in) :: mdotos
-    real(dp), intent(inout) :: echam
-    real(dp), intent(inout) :: mcham
+  subroutine update_chamber_contents( &
+      time_step_length, &
+      energy_generation_rate, &
+      energy_outflow_rate, &
+      mass_generation_rate, &
+      mass_outflow_rate, &
 
-    mcham = mcham + (mdotgen - mdotos) * dt
-    echam = echam + (edotgen - edotos) * dt
+      energy, &
+      mass)
+    real(dp), intent(in) :: time_step_length
+    real(dp), intent(in) :: energy_generation_rate
+    real(dp), intent(in) :: energy_outflow_rate
+    real(dp), intent(in) :: mass_generation_rate
+    real(dp), intent(in) :: mass_outflow_rate
+    real(dp), intent(inout) :: energy
+    real(dp), intent(inout) :: mass
+
+    mass = mass + (mass_generation_rate - mass_outflow_rate) * time_step_length
+    energy = energy + (energy_generation_rate - energy_outflow_rate) * time_step_length
   end subroutine
 
   subroutine calct(cv, echam, mcham,  t)
@@ -413,7 +421,8 @@ contains
       call calculate_generation_rates( &
           cp, r, rhos, surf, Tflame,  edotgen, mdotgen)
       call calculate_flow_rates(area, cp, g, p, rgas, t,  edotos, mdotos)
-      call addmass(dt, edotgen, edotos, mdotgen, mdotos,  echam, mcham)
+      call update_chamber_contents( &
+          dt, edotgen, edotos, mdotgen, mdotos,  echam, mcham)
       call calct(cv, echam, mcham,  t)
       call calcp(mcham, rgas, t, vol,  p)
       call calcthrust( &
