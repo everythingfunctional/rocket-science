@@ -281,27 +281,50 @@ contains
         chamber_mass * specific_gas_constant * chamber_temperature / chamber_volume
   end subroutine
 
-  subroutine calcthrust( &
-      altitude, area, cf, p, vel,  drag, netthrust, thrust)
+  subroutine calculate_thrust( &
+      altitude, &
+      flow_area, &
+      thrust_correction_factor, &
+      chamber_pressure, &
+      velocity, &
+
+      drag, &
+      net_thrust, &
+      thrust)
     real(dp), intent(in) :: altitude
-    real(dp), intent(in) :: area
-    real(dp), intent(in) :: cf
-    real(dp), intent(in) :: p
-    real(dp), intent(in) :: vel
+    real(dp), intent(in) :: flow_area
+    real(dp), intent(in) :: thrust_correction_factor
+    real(dp), intent(in) :: chamber_pressure
+    real(dp), intent(in) :: velocity
     real(dp), intent(out) :: drag
-    real(dp), intent(out) :: netthrust
+    real(dp), intent(out) :: net_thrust
     real(dp), intent(out) :: thrust
 
     real(dp), parameter :: DRAG_COEFFICIENT = 1.1_dp
     real(dp), parameter :: MOLECULAR_WEIGHT_OF_AIR = 28.96_dp
     real(dp), parameter :: REFERENCE_AIR_DENSITY = 1.225_dp
     real(dp), parameter :: ROCKET_SURFACE_AREA = PI / 4.0_dp
-    real(dp) :: den
+    real(dp) :: air_density
 
-    thrust = (p - ATMOSPHERIC_PRESSURE) * area * cf ! correction to thrust (actual vs vacuum thrust)
-    den = REFERENCE_AIR_DENSITY * exp(-GRAVITY * MOLECULAR_WEIGHT_OF_AIR * altitude / UNIVERSAL_GAS_CONSTANT / AMBIENT_TEMPERATURE)
-    drag = -DRAG_COEFFICIENT * 0.5_dp * den * vel * abs(vel) * ROCKET_SURFACE_AREA
-    netthrust=thrust+drag
+    thrust = &
+        (chamber_pressure - ATMOSPHERIC_PRESSURE) &
+        * flow_area * thrust_correction_factor
+    air_density = &
+        REFERENCE_AIR_DENSITY &
+        * exp( &
+            -GRAVITY &
+            * MOLECULAR_WEIGHT_OF_AIR &
+            * altitude &
+            / UNIVERSAL_GAS_CONSTANT &
+            / AMBIENT_TEMPERATURE)
+    drag = &
+        -DRAG_COEFFICIENT &
+        * 0.5_dp &
+        * air_density &
+        * velocity &
+        * abs(velocity) &
+        * ROCKET_SURFACE_AREA
+    net_thrust = thrust + drag
   end subroutine
 
   subroutine height( &
@@ -442,7 +465,7 @@ contains
           dt, edotgen, edotos, mdotgen, mdotos,  echam, mcham)
       call calculate_temperature(cv, echam, mcham,  t)
       call calculate_pressure(mcham, rgas, t, vol,  p)
-      call calcthrust( &
+      call calculate_thrust( &
           altitude, area, cf, p, vel,  drag, netthrust, thrust)
       call height( &
           dt, &
