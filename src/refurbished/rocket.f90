@@ -163,7 +163,7 @@ contains
     real(dp) :: flow_direction
     real(dp) :: flow_enthalpy
     real(dp) :: flow_pressure
-    real(dp) :: flow_speed
+    real(dp) :: characteristic_velocity
     real(dp) :: flow_temperature
     real(dp) :: mass_flow_rate
     real(dp) :: pressure_ratio
@@ -196,13 +196,13 @@ contains
           g => heat_capacity_ratio, &
           r => specific_gas_constant, &
           t => flow_temperature)
-        flow_speed = &
+        characteristic_velocity = &
             sqrt( &
                 (1.0_dp / g) &
                 * ((g + 1.0_dp) / 2.0_dp)**((g + 1.0_dp) / (g - 1.0_dp)) &
                 * r * t)
       end associate
-      mass_flow_rate = flow_pressure * flow_area / flow_speed
+      mass_flow_rate = flow_pressure * flow_area / characteristic_velocity
     else
       ! unchoked flow
       f1 = pressure_ratio**((heat_capacity_ratio - 1.0_dp) / heat_capacity_ratio)
