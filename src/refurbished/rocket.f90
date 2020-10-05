@@ -186,52 +186,40 @@ contains
         * flame_temperature
   end function
 
-  subroutine calculate_flow_rates( &
+  pure function calculate_mass_flow_rate( &
       flow_area, &
-      heat_capacity_at_constant_pressure, &
       heat_capacity_ratio, &
       chamber_pressure, &
       specific_gas_constant, &
-      chamber_temperature, &
-
-      energy_outflow_rate, &
-      mass_outflow_rate)
+      chamber_temperature) &
+      result(mass_outflow_rate)
     real(dp), intent(in) :: flow_area
-    real(dp), intent(in) :: heat_capacity_at_constant_pressure
     real(dp), intent(in) :: heat_capacity_ratio
     real(dp), intent(in) :: chamber_pressure
     real(dp), intent(in) :: specific_gas_constant
     real(dp), intent(in) :: chamber_temperature
-    real(dp), intent(out) :: energy_outflow_rate
-    real(dp), intent(out) :: mass_outflow_rate
+    real(dp) :: mass_outflow_rate
 
     real(dp) :: critical_pressure_ratio
-    real(dp) :: energy_flow_rate
     real(dp) :: f1
     real(dp) :: f2
     real(dp) :: f3
     real(dp) :: flow_direction
-    real(dp) :: flow_enthalpy
     real(dp) :: flow_pressure
     real(dp) :: characteristic_velocity
     real(dp) :: flow_temperature
     real(dp) :: mass_flow_rate
     real(dp) :: pressure_ratio
 
-    mass_outflow_rate = 0.0_dp
-    energy_outflow_rate = 0.0_dp ! initially set them to zero prior to running this loop
-
     if (chamber_pressure.GT.ATMOSPHERIC_PRESSURE) then
       flow_direction = 1.0_dp
       flow_temperature = chamber_temperature
       flow_pressure = chamber_pressure
-      flow_enthalpy = heat_capacity_at_constant_pressure * chamber_temperature
       pressure_ratio = chamber_pressure / ATMOSPHERIC_PRESSURE
     else
       flow_direction = -1.0_dp
       flow_temperature = AMBIENT_TEMPERATURE
       flow_pressure = ATMOSPHERIC_PRESSURE
-      flow_enthalpy = heat_capacity_at_constant_pressure * AMBIENT_TEMPERATURE
       pressure_ratio = ATMOSPHERIC_PRESSURE / chamber_pressure
     end if
 
@@ -269,10 +257,31 @@ contains
           * f3 &
           * flow_area
     end if
-    energy_flow_rate = mass_flow_rate * flow_enthalpy
     mass_outflow_rate = mass_flow_rate * flow_direction
-    energy_outflow_rate = energy_flow_rate * flow_direction
-  end subroutine
+  end function
+
+  pure function calculate_energy_flow_rate( &
+      heat_capacity_at_constant_pressure, &
+      chamber_pressure, &
+      chamber_temperature, &
+      mass_outflow_rate) &
+      result(energy_outflow_rate)
+    real(dp), intent(in) :: heat_capacity_at_constant_pressure
+    real(dp), intent(in) :: chamber_pressure
+    real(dp), intent(in) :: chamber_temperature
+    real(dp), intent(in) :: mass_outflow_rate
+    real(dp) :: energy_outflow_rate
+
+    real(dp) :: flow_enthalpy
+
+    if (chamber_pressure.GT.ATMOSPHERIC_PRESSURE) then
+      flow_enthalpy = heat_capacity_at_constant_pressure * chamber_temperature
+    else
+      flow_enthalpy = heat_capacity_at_constant_pressure * AMBIENT_TEMPERATURE
+    end if
+
+    energy_outflow_rate = mass_outflow_rate * flow_enthalpy
+  end function
 
   subroutine update_chamber_contents( &
       time_step_length, &
@@ -531,15 +540,16 @@ contains
           mass_generation_rate, &
           heat_capacity_at_constant_pressure, &
           flame_temperature)
-      call calculate_flow_rates( &
+      mass_outflow_rate = calculate_mass_flow_rate( &
           flow_area, &
-          heat_capacity_at_constant_pressure, &
           heat_capacity_ratio, &
           chamber_pressure, &
           specific_gas_constant, &
+          chamber_temperature)
+      energy_outflow_rate = calculate_energy_flow_rate( &
+          heat_capacity_at_constant_pressure, &
+          chamber_pressure, &
           chamber_temperature, &
-
-          energy_outflow_rate, &
           mass_outflow_rate)
       call update_chamber_contents( &
           time_step_length, &
