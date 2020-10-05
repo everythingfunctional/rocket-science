@@ -42,21 +42,15 @@ contains
     initial_rocket_mass = 0.15_dp * propellant_mass
   end function
 
-  subroutine update_burn_rate_and_depth( &
-      time_step_length, &
+  pure function calculate_burn_rate(&
       burn_rate_exponent, &
       pressure, &
-      reference_burn_rate, &
-
-      burn_depth, &
-
-      burn_rate)
-    real(dp), intent(in) :: time_step_length
+      reference_burn_rate) &
+      result(burn_rate)
     real(dp), intent(in) :: burn_rate_exponent
     real(dp), intent(in) :: pressure
     real(dp), intent(in) :: reference_burn_rate
-    real(dp), intent(inout) :: burn_depth
-    real(dp), intent(out) :: burn_rate
+    real(dp) :: burn_rate
 
     real(dp), parameter :: PASCALS_PER_PSI = 6894.76_dp
     real(dp), parameter :: REFERENCE_PRESSURE = 3000.0_dp * PASCALS_PER_PSI
@@ -68,8 +62,20 @@ contains
         n => burn_rate_exponent)
       burn_rate = rbr * (p/p_r)**n
     end associate
-    burn_depth = burn_depth + burn_rate*time_step_length
-  end subroutine
+  end function
+
+  pure function update_burn_depth( &
+      previous_burn_depth, &
+      burn_rate, &
+      time_step_length) &
+      result(new_burn_depth)
+    real(dp), intent(in) :: previous_burn_depth
+    real(dp), intent(in) :: burn_rate
+    real(dp), intent(in) :: time_step_length
+    real(dp) :: new_burn_depth
+
+    new_burn_depth = previous_burn_depth + burn_rate*time_step_length
+  end function
 
   subroutine update_combustion_progress( &
       burn_depth, &
@@ -461,15 +467,9 @@ contains
         propellant_density)
     rocket_mass = initial_rocket_mass(propellant_mass)
     do i = 1, num_time_steps
-      call update_burn_rate_and_depth( &
-          time_step_length, &
-          burn_rate_exponent, &
-          chamber_pressure, &
-          reference_burn_rate, &
-
-          burn_depth, &
-
-          burn_rate)
+      burn_rate = calculate_burn_rate( &
+          burn_rate_exponent, chamber_pressure, reference_burn_rate)
+      burn_depth = update_burn_depth(burn_depth, burn_rate, time_step_length)
       call update_combustion_progress( &
           burn_depth, &
           time_step_length, &
