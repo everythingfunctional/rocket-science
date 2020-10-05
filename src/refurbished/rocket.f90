@@ -77,25 +77,51 @@ contains
     new_burn_depth = previous_burn_depth + burn_rate*time_step_length
   end function
 
-  subroutine update_combustion_progress( &
+  pure function calculate_burning_surface_area( &
       burn_depth, &
-      time_step_length, &
       propellant_inner_diameter, &
       propellant_length, &
-      propellant_outer_diameter, &
-
-      burn_rate, &
-      chamber_volume, &
-
-      burning_surface_area)
+      propellant_outer_diameter) &
+      result(burning_surface_area)
     real(dp), intent(in) :: burn_depth
-    real(dp), intent(in) :: time_step_length
     real(dp), intent(in) :: propellant_inner_diameter
     real(dp), intent(in) :: propellant_length
     real(dp), intent(in) :: propellant_outer_diameter
-    real(dp), intent(inout) :: burn_rate
-    real(dp), intent(inout) :: chamber_volume
-    real(dp), intent(out) :: burning_surface_area
+    real(dp) :: burning_surface_area
+
+    ! cylinder burning from inside and both ends
+    associate( &
+        id => propellant_inner_diameter, &
+        od => propellant_outer_diameter, &
+        l => propellant_length, &
+        d => burn_depth)
+      associate( &
+          new_l => l - 2.0_dp*d, &
+          new_id => id + 2.0_dp*d)
+        if (new_id > od .or. new_l < 0.0_dp) then
+          burning_surface_area = 0.0_dp
+        else
+          burning_surface_area = &
+              PI * new_id * new_l &
+              + PI * (od**2 - new_id**2) / 4.0_dp * 2.0_dp
+        end if
+      end associate
+    end associate
+  end function
+
+  pure function recheck_burn_rate( &
+      current_burn_rate, &
+      burn_depth, &
+      propellant_inner_diameter, &
+      propellant_length, &
+      propellant_outer_diameter) &
+      result(burn_rate)
+    real(dp), intent(in) :: current_burn_rate
+    real(dp), intent(in) :: burn_depth
+    real(dp), intent(in) :: propellant_inner_diameter
+    real(dp), intent(in) :: propellant_length
+    real(dp), intent(in) :: propellant_outer_diameter
+    real(dp) :: burn_rate
 
     associate( &
         id => propellant_inner_diameter, &
@@ -105,22 +131,31 @@ contains
       associate( &
           new_l => l - 2.0_dp*d, &
           new_id => id + 2.0_dp*d)
-        ! cylinder burning from inside and both ends
-        burning_surface_area = &
-            PI * new_id * new_l &
-            + PI * (od**2 - new_id**2) / 4.0_dp * 2.0_dp
         if (new_id > od .or. new_l < 0.0_dp) then
-          burning_surface_area = 0.0_dp ! we hit the wall and burned out
-          burn_rate = 0.0_dp ! turn off burn rate so burn distance stops increasing
+          burn_rate = 0.0_dp
+        else
+          burn_rate = current_burn_rate
         end if
       end associate
     end associate
+  end function
 
-    ! increment the interior volume of the chamber
+  pure function update_chamber_volume( &
+      previous_chamber_volume, &
+      burn_rate, &
+      burning_surface_area, &
+      time_step_length) &
+      result(chamber_volume)
+    real(dp), intent(in) :: previous_chamber_volume
+    real(dp), intent(in) :: burn_rate
+    real(dp), intent(in) :: burning_surface_area
+    real(dp), intent(in) :: time_step_length
+    real(dp) :: chamber_volume
+
     chamber_volume = &
-        chamber_volume &
+        previous_chamber_volume &
         + burn_rate*burning_surface_area*time_step_length
-  end subroutine
+  end function
 
   subroutine calculate_generation_rates( &
       heat_capacity_at_constant_pressure, &
@@ -470,17 +505,19 @@ contains
       burn_rate = calculate_burn_rate( &
           burn_rate_exponent, chamber_pressure, reference_burn_rate)
       burn_depth = update_burn_depth(burn_depth, burn_rate, time_step_length)
-      call update_combustion_progress( &
+      burning_surface_area = calculate_burning_surface_area( &
           burn_depth, &
-          time_step_length, &
           propellant_inner_diameter, &
           propellant_length, &
-          propellant_outer_diameter, &
-
+          propellant_outer_diameter)
+      burn_rate = recheck_burn_rate( &
           burn_rate, &
-          chamber_volume, &
-
-          burning_surface_area)
+          burn_depth, &
+          propellant_inner_diameter, &
+          propellant_length, &
+          propellant_outer_diameter)
+      chamber_volume = update_chamber_volume( &
+          chamber_volume, burn_rate, burning_surface_area, time_step_length)
       call calculate_generation_rates( &
           heat_capacity_at_constant_pressure, &
           burn_rate, &
