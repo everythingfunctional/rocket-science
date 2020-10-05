@@ -14,31 +14,33 @@ module refurbished
   real(dp), parameter :: PI = 3.1415926539_dp
   real(dp), parameter :: UNIVERSAL_GAS_CONSTANT = 8314.0_dp
 contains
-  subroutine initialize_propellant_and_rocket_mass( &
+  pure function initial_propellant_mass( &
       propellant_inner_diameter, &
       propellant_length, &
       propellant_outer_diameter, &
-      propellant_density, &
-
-      propellant_mass, &
-      rocket_mass)
+      propellant_density)
     real(dp), intent(in) :: propellant_inner_diameter
     real(dp), intent(in) :: propellant_length
     real(dp), intent(in) :: propellant_outer_diameter
     real(dp), intent(in) :: propellant_density
-    real(dp), intent(out) :: propellant_mass
-    real(dp), intent(out) :: rocket_mass
+    real(dp) :: initial_propellant_mass
 
     associate( &
         id => propellant_inner_diameter, &
         od => propellant_outer_diameter, &
         l => propellant_length)
       associate(propellant_volume => PI * (od**2 - id**2) / 4.0_dp * l)
-        propellant_mass = propellant_volume * propellant_density
+        initial_propellant_mass = propellant_volume * propellant_density
       end associate
     end associate
-    rocket_mass = 0.15_dp * propellant_mass
-  end subroutine
+  end function
+
+  pure function initial_rocket_mass(propellant_mass)
+    real(dp), intent(in) :: propellant_mass
+    real(dp) :: initial_rocket_mass
+
+    initial_rocket_mass = 0.15_dp * propellant_mass
+  end function
 
   subroutine update_burn_rate_and_depth( &
       time_step_length, &
@@ -452,14 +454,12 @@ contains
         velocity, &
         altitude]
 
-    call initialize_propellant_and_rocket_mass( &
+    propellant_mass = initial_propellant_mass( &
         propellant_inner_diameter, &
         propellant_length, &
         propellant_outer_diameter, &
-        propellant_density, &
-
-        propellant_mass, &
-        rocket_mass)
+        propellant_density)
+    rocket_mass = initial_rocket_mass(propellant_mass)
     do i = 1, num_time_steps
       call update_burn_rate_and_depth( &
           time_step_length, &
