@@ -157,27 +157,34 @@ contains
         + burn_rate*burning_surface_area*time_step_length
   end function
 
-  subroutine calculate_generation_rates( &
-      heat_capacity_at_constant_pressure, &
-      burn_rate, &
+  pure function calculate_mass_generation_rate( &
       propellant_density, &
-      burning_surface_area, &
-      flame_temperature, &
-
-      energy_generation_rate, &
-      mass_generation_rate)
-    real(dp), intent(in) :: heat_capacity_at_constant_pressure
-    real(dp), intent(in) :: burn_rate
+      burn_rate, &
+      burning_surface_area) &
+      result(mass_generation_rate)
     real(dp), intent(in) :: propellant_density
+    real(dp), intent(in) :: burn_rate
     real(dp), intent(in) :: burning_surface_area
-    real(dp), intent(in) :: flame_temperature
-    real(dp), intent(out) :: energy_generation_rate
-    real(dp), intent(out) :: mass_generation_rate
+    real(dp) :: mass_generation_rate
 
     mass_generation_rate = propellant_density * burn_rate * burning_surface_area
+  end function
+
+  pure function calculate_energy_generation_rate( &
+      mass_generation_rate, &
+      heat_capacity_at_constant_pressure, &
+      flame_temperature) &
+      result(energy_generation_rate)
+    real(dp), intent(in) :: mass_generation_rate
+    real(dp), intent(in) :: heat_capacity_at_constant_pressure
+    real(dp), intent(in) :: flame_temperature
+    real(dp) :: energy_generation_rate
+
     energy_generation_rate = &
-        mass_generation_rate * heat_capacity_at_constant_pressure * flame_temperature
-  end subroutine
+        mass_generation_rate &
+        * heat_capacity_at_constant_pressure &
+        * flame_temperature
+  end function
 
   subroutine calculate_flow_rates( &
       flow_area, &
@@ -518,15 +525,12 @@ contains
           propellant_outer_diameter)
       chamber_volume = update_chamber_volume( &
           chamber_volume, burn_rate, burning_surface_area, time_step_length)
-      call calculate_generation_rates( &
+      mass_generation_rate = calculate_mass_generation_rate( &
+          propellant_density, burn_rate, burning_surface_area)
+      energy_generation_rate = calculate_energy_generation_rate( &
+          mass_generation_rate, &
           heat_capacity_at_constant_pressure, &
-          burn_rate, &
-          propellant_density, &
-          burning_surface_area, &
-          flame_temperature, &
-
-          energy_generation_rate, &
-          mass_generation_rate)
+          flame_temperature)
       call calculate_flow_rates( &
           flow_area, &
           heat_capacity_at_constant_pressure, &
