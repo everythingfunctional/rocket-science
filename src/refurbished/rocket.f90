@@ -14,30 +14,30 @@ module refurbished
   real(dp), parameter :: PI = 3.1415926539_dp
   real(dp), parameter :: UNIVERSAL_GAS_CONSTANT = 8314.0_dp
 contains
-  subroutine initialize_fuel_and_rocket_mass( &
-      fuel_inner_diameter, &
-      fuel_length, &
-      fuel_outer_diameter, &
-      fuel_density, &
+  subroutine initialize_propellant_and_rocket_mass( &
+      propellant_inner_diameter, &
+      propellant_length, &
+      propellant_outer_diameter, &
+      propellant_density, &
 
-      fuel_mass, &
+      propellant_mass, &
       rocket_mass)
-    real(dp), intent(in) :: fuel_inner_diameter
-    real(dp), intent(in) :: fuel_length
-    real(dp), intent(in) :: fuel_outer_diameter
-    real(dp), intent(in) :: fuel_density
-    real(dp), intent(out) :: fuel_mass
+    real(dp), intent(in) :: propellant_inner_diameter
+    real(dp), intent(in) :: propellant_length
+    real(dp), intent(in) :: propellant_outer_diameter
+    real(dp), intent(in) :: propellant_density
+    real(dp), intent(out) :: propellant_mass
     real(dp), intent(out) :: rocket_mass
 
     associate( &
-        id => fuel_inner_diameter, &
-        od => fuel_outer_diameter, &
-        l => fuel_length)
-      associate(fuel_volume => PI * (od**2 - id**2) / 4.0_dp * l)
-        fuel_mass = fuel_volume * fuel_density
+        id => propellant_inner_diameter, &
+        od => propellant_outer_diameter, &
+        l => propellant_length)
+      associate(propellant_volume => PI * (od**2 - id**2) / 4.0_dp * l)
+        propellant_mass = propellant_volume * propellant_density
       end associate
     end associate
-    rocket_mass = 0.15_dp * fuel_mass
+    rocket_mass = 0.15_dp * propellant_mass
   end subroutine
 
   subroutine update_burn_rate_and_depth( &
@@ -72,9 +72,9 @@ contains
   subroutine update_combustion_progress( &
       burn_depth, &
       time_step_length, &
-      fuel_inner_diameter, &
-      fuel_length, &
-      fuel_outer_diameter, &
+      propellant_inner_diameter, &
+      propellant_length, &
+      propellant_outer_diameter, &
 
       burn_rate, &
       chamber_volume, &
@@ -82,17 +82,17 @@ contains
       burning_surface_area)
     real(dp), intent(in) :: burn_depth
     real(dp), intent(in) :: time_step_length
-    real(dp), intent(in) :: fuel_inner_diameter
-    real(dp), intent(in) :: fuel_length
-    real(dp), intent(in) :: fuel_outer_diameter
+    real(dp), intent(in) :: propellant_inner_diameter
+    real(dp), intent(in) :: propellant_length
+    real(dp), intent(in) :: propellant_outer_diameter
     real(dp), intent(inout) :: burn_rate
     real(dp), intent(inout) :: chamber_volume
     real(dp), intent(out) :: burning_surface_area
 
     associate( &
-        id => fuel_inner_diameter, &
-        od => fuel_outer_diameter, &
-        l => fuel_length, &
+        id => propellant_inner_diameter, &
+        od => propellant_outer_diameter, &
+        l => propellant_length, &
         d => burn_depth)
       associate( &
           new_l => l - 2.0_dp*d, &
@@ -117,7 +117,7 @@ contains
   subroutine calculate_generation_rates( &
       heat_capacity_at_constant_pressure, &
       burn_rate, &
-      fuel_density, &
+      propellant_density, &
       burning_surface_area, &
       flame_temperature, &
 
@@ -125,13 +125,13 @@ contains
       mass_generation_rate)
     real(dp), intent(in) :: heat_capacity_at_constant_pressure
     real(dp), intent(in) :: burn_rate
-    real(dp), intent(in) :: fuel_density
+    real(dp), intent(in) :: propellant_density
     real(dp), intent(in) :: burning_surface_area
     real(dp), intent(in) :: flame_temperature
     real(dp), intent(out) :: energy_generation_rate
     real(dp), intent(out) :: mass_generation_rate
 
-    mass_generation_rate = fuel_density * burn_rate * burning_surface_area
+    mass_generation_rate = propellant_density * burn_rate * burning_surface_area
     energy_generation_rate = &
         mass_generation_rate * heat_capacity_at_constant_pressure * flame_temperature
   end subroutine
@@ -335,7 +335,7 @@ contains
       rocket_mass, &
 
       altitude, &
-      fuel_mass, &
+      propellant_mass, &
       velocity, &
 
       acceleration)
@@ -345,12 +345,12 @@ contains
     real(dp), intent(in) :: net_thrust
     real(dp), intent(in) :: rocket_mass
     real(dp), intent(inout) :: altitude
-    real(dp), intent(inout) :: fuel_mass
+    real(dp), intent(inout) :: propellant_mass
     real(dp), intent(inout) :: velocity
     real(dp), intent(out) :: acceleration
 
-    fuel_mass = fuel_mass - mass_generation_rate*time_step_length
-    acceleration = net_thrust / (fuel_mass + rocket_mass + chamber_mass) - GRAVITY
+    propellant_mass = propellant_mass - mass_generation_rate*time_step_length
+    acceleration = net_thrust / (propellant_mass + rocket_mass + chamber_mass) - GRAVITY
     velocity = velocity + acceleration*time_step_length
     altitude = altitude + velocity*time_step_length
   end subroutine
@@ -365,10 +365,10 @@ contains
       flame_temperature, &
       reference_burn_rate, &
       burn_rate_exponent, &
-      fuel_inner_diameter, &
-      fuel_outer_diameter, &
-      fuel_length, &
-      fuel_density, &
+      propellant_inner_diameter, &
+      propellant_outer_diameter, &
+      propellant_length, &
+      propellant_density, &
       nozzle_diameter, &
       thrust_correction_factor)
     !! this is a basic program of a single stage
@@ -384,10 +384,10 @@ contains
     real(dp), intent(in) :: flame_temperature
     real(dp), intent(in) :: reference_burn_rate
     real(dp), intent(in) :: burn_rate_exponent
-    real(dp), intent(in) :: fuel_inner_diameter
-    real(dp), intent(in) :: fuel_outer_diameter
-    real(dp), intent(in) :: fuel_length
-    real(dp), intent(in) :: fuel_density
+    real(dp), intent(in) :: propellant_inner_diameter
+    real(dp), intent(in) :: propellant_outer_diameter
+    real(dp), intent(in) :: propellant_length
+    real(dp), intent(in) :: propellant_density
     real(dp), intent(in) :: nozzle_diameter
     real(dp), intent(in) :: thrust_correction_factor
     real(dp), allocatable :: rocket(:,:)
@@ -408,7 +408,7 @@ contains
     real(dp) :: energy_generation_rate
     real(dp) :: energy_outflow_rate
     real(dp) :: flow_area
-    real(dp) :: fuel_mass = ZERO
+    real(dp) :: propellant_mass = ZERO
     real(dp) :: heat_capacity_at_constant_volume
     real(dp) :: heat_capacity_ratio
     integer :: i
@@ -452,13 +452,13 @@ contains
         velocity, &
         altitude]
 
-    call initialize_fuel_and_rocket_mass( &
-        fuel_inner_diameter, &
-        fuel_length, &
-        fuel_outer_diameter, &
-        fuel_density, &
+    call initialize_propellant_and_rocket_mass( &
+        propellant_inner_diameter, &
+        propellant_length, &
+        propellant_outer_diameter, &
+        propellant_density, &
 
-        fuel_mass, &
+        propellant_mass, &
         rocket_mass)
     do i = 1, num_time_steps
       call update_burn_rate_and_depth( &
@@ -473,9 +473,9 @@ contains
       call update_combustion_progress( &
           burn_depth, &
           time_step_length, &
-          fuel_inner_diameter, &
-          fuel_length, &
-          fuel_outer_diameter, &
+          propellant_inner_diameter, &
+          propellant_length, &
+          propellant_outer_diameter, &
 
           burn_rate, &
           chamber_volume, &
@@ -484,7 +484,7 @@ contains
       call calculate_generation_rates( &
           heat_capacity_at_constant_pressure, &
           burn_rate, &
-          fuel_density, &
+          propellant_density, &
           burning_surface_area, &
           flame_temperature, &
 
@@ -540,7 +540,7 @@ contains
           rocket_mass, &
 
           altitude, &
-          fuel_mass, &
+          propellant_mass, &
           velocity, &
 
           acceleration)
