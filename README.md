@@ -35,8 +35,10 @@ Prerequisites
 This code was developed with the following compiler and parallel runtime
 library:
 
-* [GNU Compiler Collection] Fortran compiler (gfortran 10.2.0)
-* [OpenCoarrays] parallel runtime library (caf 2.9.0).
+* [GNU Compiler Collection] Fortran compiler (v. 10.2.0).
+* [OpenCoarrays] parallel runtime library (v. 2.9.0).
+* [CMake] for building and testing (v. 3.17).
+* [gnuplot ] for graphic results (v. 5.4).
 
 Earlier versions might work also.
 
@@ -55,9 +57,6 @@ to build:
 
 Earlier versions of each might work as well.
 
-### Optional
-* [gnuplot] for graphing results.
-
 Download, Build, and Graph
 --------------------------
 ```bash
@@ -68,13 +67,9 @@ cmake ..
 make
 ctest
 ```
-and then graph the results with the following commands
-```bash
-cd tests/integration/rocket
- ../../../src/rocket-science --graph
-```
-which should produce plots much like the thrust history below.  Press any button to bring up the next plot.
-If the run completed successfully, the modern, legacy and refurbished curves will be indistinguishable.
+which puts graphs of the results in the `app` subdirectory of the build tree.
+An example thrust history plot is below.  If the run completed successfully,
+the modern, legacy and refurbished curves will be indistinguishable.
 
 ![Thrust history](https://user-images.githubusercontent.com/13108868/93721216-36439200-fb43-11ea-9ad2-d0797b043783.png)
 
@@ -82,4 +77,3 @@ If the run completed successfully, the modern, legacy and refurbished curves wil
 [GNU Compiler Collection]: https://gcc.gnu.org
 [OpenCoarrays]: https://github.com/sourceryinstitute/opencoarrays
 [gnuplot]: http://www.gnuplot.info
-

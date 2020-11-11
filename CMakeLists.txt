@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.15)
+cmake_minimum_required(VERSION 3.17)
 
 set (ROCKET_VERSION "1.0.0")
 set (ALLOWED_BUILD_TYPES "Debug" "Release")
