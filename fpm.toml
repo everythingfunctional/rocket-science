@@ -1,0 +1,30 @@
+name = "rocket-science"
+version = "1.0.0"
+license = "BSD"
+author = ["Damian Rouson", "Brad Richardson", "Brian Laubacher"]
+maintainer = "damian@sourceryinstitute.org"
+copyright = "2020 Sourcery Institute"
+
+[dev-dependencies]
+
+vegetables = {git = "https://gitlab.com/everythingfunctional/vegetables", tag = "v5.1.1"}
+
+[[executable]]
+name="legacy_rocket"
+source-dir="app/legacy"
+main="main.f90"
+
+[[executable]]
+name="refurbished_rocket"
+source-dir="app/refurbished"
+main="main.f90"
+
+[[test]]
+name="integration"
+source-dir="tests/integration/refurbished"
+main="main.f90"
+
+[[test]]
+name="unit"
+source-dir="tests/unit/refurbished"
+main="main.f90"
