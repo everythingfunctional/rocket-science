@@ -1,43 +1,58 @@
 set terminal png
 
-set xlabel "time"
+set style line 1 linewidth 2
+set style line 2 linewidth 2
 
-set output 'p.png'
-set ylabel 'p'
-plot 'legacy_rocket.out' using 1:2, 'refurbished_rocket.out' using 1:2
+set format y "%.2g"
 
-set output 't.png'
-set ylabel 't'
-plot 'legacy_rocket.out' using 1:3, 'refurbished_rocket.out' using 1:3
+set xlabel "Time (s)"
 
-set output 'mdotos.png'
-set ylabel 'mdotos'
-plot 'legacy_rocket.out' using 1:4, 'refurbished_rocket.out' using 1:4
+set output 'pressure.png'
+set ylabel 'Pressure (Pa)'
+plot 'legacy_rocket.out' using 1:2 title 'legacy' with lines linestyle 1, \
+  'refurbished_rocket.out' using 1:2 title 'refurbished' with lines linestyle 2
+
+set output 'temperature.png'
+set ylabel 'Temperature (K)'
+plot 'legacy_rocket.out' using 1:3 title 'legacy' with lines linestyle 1, \
+  'refurbished_rocket.out' using 1:3 title 'refurbished' with lines linestyle 2
+
+set output 'mass_flow.png'
+set ylabel 'Mass Flow Out of Nozzle (kg/s)'
+plot 'legacy_rocket.out' using 1:4 title 'legacy' with lines linestyle 1, \
+  'refurbished_rocket.out' using 1:4 title 'refurbished' with lines linestyle 2
 
 set output 'thrust.png'
-set ylabel 'thrust'
-plot 'legacy_rocket.out' using 1:5, 'refurbished_rocket.out' using 1:5
+set ylabel 'Thrust (N)'
+plot 'legacy_rocket.out' using 1:5 title 'legacy' with lines linestyle 1, \
+  'refurbished_rocket.out' using 1:5 title 'refurbished' with lines linestyle 2
 
 set output 'drag.png'
-set ylabel 'drag'
-plot 'legacy_rocket.out' using 1:6, 'refurbished_rocket.out' using 1:6
+set ylabel 'Drag (N)'
+plot 'legacy_rocket.out' using 1:6 title 'legacy' with lines linestyle 1, \
+  'refurbished_rocket.out' using 1:6 title 'refurbished' with lines linestyle 2
 
 set output 'netthrust.png'
-set ylabel 'netthrust'
-plot 'legacy_rocket.out' using 1:7, 'refurbished_rocket.out' using 1:7
+set ylabel 'Net Thrust (N)'
+plot 'legacy_rocket.out' using 1:7 title 'legacy' with lines linestyle 1, \
+  'refurbished_rocket.out' using 1:7 title 'refurbished' with lines linestyle 2
 
-set output 'vol.png'
-set ylabel 'vol'
-plot 'legacy_rocket.out' using 1:8, 'refurbished_rocket.out' using 1:8
+set output 'volume.png'
+set ylabel 'Volume of Gas In Chamber (m^3)'
+plot 'legacy_rocket.out' using 1:8 title 'legacy' with lines linestyle 1, \
+  'refurbished_rocket.out' using 1:8 title 'refurbished' with lines linestyle 2
 
-set output 'accel.png'
-set ylabel 'accel'
-plot 'legacy_rocket.out' using 1:9, 'refurbished_rocket.out' using 1:9
+set output 'acceleration.png'
+set ylabel 'Acceleration (m/s^2)'
+plot 'legacy_rocket.out' using 1:9 title 'legacy' with lines linestyle 1, \
+  'refurbished_rocket.out' using 1:9 title 'refurbished' with lines linestyle 2
 
-set output 'vel.png'
-set ylabel 'vel'
-plot 'legacy_rocket.out' using 1:10, 'refurbished_rocket.out' using 1:10
+set output 'velocity.png'
+set ylabel 'Velocity (m/s)'
+plot 'legacy_rocket.out' using 1:10 title 'legacy' with lines linestyle 1, \
+  'refurbished_rocket.out' using 1:10 title 'refurbished' with lines linestyle 2
 
 set output 'altitude.png'
-set ylabel 'altitude'
-plot 'legacy_rocket.out' using 1:11, 'refurbished_rocket.out' using 1:11
+set ylabel 'Altitude (m)'
+plot 'legacy_rocket.out' using 1:11 title 'legacy' with lines linestyle 1, \
+  'refurbished_rocket.out' using 1:11 title 'refurbished' with lines linestyle 2
