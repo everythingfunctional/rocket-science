@@ -1,3 +1,8 @@
+module legacy
+   implicit none
+
+contains
+
 subroutine propwt ! calculate weight of propellent
   use mod1
   implicit none
@@ -228,3 +233,5 @@ cf  = C_f_
   legacy_rocket = output
 
 end function legacy_rocket
+
+end module legacy
