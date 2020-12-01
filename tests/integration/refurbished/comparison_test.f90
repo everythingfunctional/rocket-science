@@ -2,7 +2,7 @@ module comparison_test
     use refurbished, only: refurbished_rocket => rocket
     use refurbished_mod1, only: dp
     use results_interface, only: results_t
-    use Vegetables_m, only: Result_t, TestItem_t, assertThat, describe, it
+    use vegetables, only: Result_t, test_item_t, assert_that, describe, it
     use legacy, only : legacy_rocket
 
     implicit none
@@ -11,7 +11,7 @@ module comparison_test
     public :: test_refurbished_outputs
 contains
     function test_refurbished_outputs() result(tests)
-        type(TestItem_t) :: tests
+        type(test_item_t) :: tests
 
         tests = describe(&
                 "refurbished rocket", &
@@ -77,6 +77,6 @@ contains
             dia, &
             C_f))
 
-        result_ = assertThat(refurbished_output%max_filtered_normalized_distance(legacy_output) < tolerance)
+        result_ = assert_that(refurbished_output%max_filtered_normalized_distance(legacy_output) < tolerance)
     end function
 end module

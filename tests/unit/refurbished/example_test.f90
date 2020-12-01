@@ -1,5 +1,5 @@
 module example_test
-    use Vegetables_m, only: Result_t, TestItem_t, describe, it, succeed
+    use vegetables, only: Result_t, test_item_t, describe, it, succeed
 
     implicit none
     private
@@ -7,7 +7,7 @@ module example_test
     public :: test_example
 contains
     function test_example() result(tests)
-        type(TestItem_t) :: tests
+        type(test_item_t) :: tests
 
         tests = describe(&
                 "something", &

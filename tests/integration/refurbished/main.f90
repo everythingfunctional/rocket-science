@@ -1,19 +1,19 @@
 program main
     use comparison_test, only: &
             comparison_refurbished_outputs => test_refurbished_outputs
-    use Vegetables_m, only: TestItem_t, testThat, runTests
+    use vegetables, only: test_item_t, test_that, run_tests
 
     implicit none
 
     call run()
 contains
     subroutine run()
-        type(TestItem_t) :: tests
-        type(TestItem_t) :: individual_tests(1)
+        type(test_item_t) :: tests
+        type(test_item_t) :: individual_tests(1)
 
         individual_tests(1) = comparison_refurbished_outputs()
-        tests = testThat(individual_tests)
+        tests = test_that(individual_tests)
 
-        call runTests(tests)
+        call run_tests(tests)
     end subroutine run
 end program
