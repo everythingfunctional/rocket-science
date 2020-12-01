@@ -28,8 +28,3 @@ main="main.f90"
 name="unit"
 source-dir="tests/unit/refurbished"
 main="main.f90"
-
-[[test]]
-name="unit"
-source-dir="tests"
-main="main.f90"
