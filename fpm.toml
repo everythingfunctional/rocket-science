@@ -7,7 +7,7 @@ copyright = "2020 Sourcery Institute"
 
 [dev-dependencies]
 
-vegetables = {git = "https://gitlab.com/everythingfunctional/vegetables", tag = "v5.1.1"}
+vegetables = {git = "https://gitlab.com/everythingfunctional/vegetables", tag = "v6.0.1"}
 
 [[executable]]
 name="legacy_rocket"
@@ -27,4 +27,9 @@ main="main.f90"
 [[test]]
 name="unit"
 source-dir="tests/unit/refurbished"
+main="main.f90"
+
+[[test]]
+name="unit"
+source-dir="tests"
 main="main.f90"
