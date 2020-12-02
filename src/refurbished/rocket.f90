@@ -44,9 +44,9 @@ contains
     USE refurbished_mod1
     implicit none
 
-    REAL(8) :: mdtx, engyx
-    REAL(8) :: tx, gx, rx, px, cpx, pcrit, facx, term1, term2, pratio, cstar, ax, hx
-    REAL(8) :: p1, p2
+    real(dp) :: mdtx, engyx
+    real(dp) :: tx, gx, rx, px, cpx, pcrit, facx, term1, term2, pratio, cstar, ax, hx
+    real(dp) :: p1, p2
 
     mdotos = 0.
     edotos = 0. ! initially set them to zero prior to running this loop
