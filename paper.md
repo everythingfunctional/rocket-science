@@ -1,68 +1,51 @@
 ---
-title: 'Gala: A Python package for galactic dynamics'
+title: 'Rocket Science: An Exercise in Refactoring Legacy Fortran'
 tags:
-  - Python
-  - astronomy
-  - dynamics
-  - galactic dynamics
-  - milky way
+  - Fortran
+  - refactoring
+  - rocket
 authors:
-  - name: Adrian M. Price-Whelan^[Custom footnotes for e.g. denoting who the corresponding author is can be included like this.]
-    orcid: 0000-0003-0872-7098
-    affiliation: "1, 2" # (Multiple affiliations must be quoted)
-  - name: Author Without ORCID
+  - name: Damian Rouson
+    orcid: 0000-0002-2344-868X
+    affiliation: 1
+  - name: Brad Richardson
+    orcid: 0000-0002-3205-2169
+    affiliation: 1
+  - name: Brian Laubacher
     affiliation: 2
-  - name: Author with no affiliation
-    affiliation: 3
 affiliations:
- - name: Lyman Spitzer, Jr. Fellow, Princeton University
+ - name: Sourcery Institute
    index: 1
- - name: Institution Name
+ - name: Autoliv
    index: 2
- - name: Independent Researcher
-   index: 3
-date: 13 August 2017
+date: 2 December 2020
 bibliography: paper.bib
-
-# Optional fields if submitting to a AAS journal too, see this blog post:
-# https://blog.joss.theoj.org/2018/12/a-new-collaboration-with-aas-publishing
-aas-doi: 10.3847/xxxxx <- update this with the DOI from AAS once you know it.
-aas-journal: Astrophysical Journal <- The name of the AAS journal.
 ---
 
 # Summary
 
-The forces on stars, galaxies, and dark matter under external gravitational
-fields lead to the dynamical evolution of structures in the universe. The orbits
-of these bodies are therefore key to understanding the formation, history, and
-future state of galaxies. The field of "galactic dynamics," which aims to model
-the gravitating components of galaxies to study their structure and evolution,
-is now well-established, commonly taught, and frequently used in astronomy.
-Aside from toy problems and demonstrations, the majority of problems require
-efficient numerical tools, many of which require the same base code (e.g., for
-performing numerical orbit integration).
+The near ubiquity of object-oriented programming support in modern programming languages
+and the continued utility of legacy, procedural Fortran in important application domains
+combine to make object-oriented design a common destination of code modernization efforts.
+As Fortran has evolved into a multi-paradigm language, however, the peer-reviewed literature
+contains far fewer detailed considerations of Fortran's support for functional programming.
+This paper explores the symbiotic relationship between the two by demonstrating a legacy
+code refactoring strategy in which the aim of writing pure functions motivates the choice
+of abstractions and the ability to encapsulate function results facilitates the writing
+of pure functions.  We show how a Fortran feature typically used for aliasing can be
+applied to ensure the immutability of state.  We apply the resulting code refactoring
+strategy to the modernization of an open-source pedagogical tool: a rocket motor
+simulation mini-application.  We describe (1) the original, procedural Fortran 90 program
+that uses global data, (2) a ground-up reimplementation of the same algorithms using
+object-oriented design patterns in Fortran 2018, and (3) an evolutionary refactoring
+that uses a consistent methodology for deriving purely functional abstractions from the
+Fortran 90 code.  We contrast the two modern designs and demonstrate an evolutionary
+path that could naturally lead the same resulting design for the ground-up reimplementation
+and the evolutionary refactoring.
 
 # Statement of need
 
-`Gala` is an Astropy-affiliated Python package for galactic dynamics. Python
-enables wrapping low-level languages (e.g., C) for speed without losing
-flexibility or ease-of-use in the user-interface. The API for `Gala` was
-designed to provide a class-based and user-friendly interface to fast (C or
-Cython-optimized) implementations of common operations such as gravitational
-potential and force evaluation, orbit integration, dynamical transformations,
-and chaos indicators for nonlinear dynamics. `Gala` also relies heavily on and
-interfaces well with the implementations of physical units and astronomical
-coordinate systems in the `Astropy` package [@astropy] (`astropy.units` and
-`astropy.coordinates`).
 
-`Gala` was designed to be used by both astronomical researchers and by
-students in courses on gravitational dynamics or astronomy. It has already been
-used in a number of scientific publications [@Pearson:2017] and has also been
-used in graduate courses on Galactic dynamics to, e.g., provide interactive
-visualizations of textbook material [@Binney:2008]. The combination of speed,
-design, and support for Astropy functionality in `Gala` will enable exciting
-scientific explorations of forthcoming data releases from the *Gaia* mission
-[@gaia] by students and experts alike.
 
 # Mathematics
 
@@ -103,7 +86,6 @@ and referenced from text using \autoref{fig:example}.
 
 # Acknowledgements
 
-We acknowledge contributions from Brigitta Sipocz, Syrtis Major, and Semyeong
-Oh, and support from Kathryn Johnston during the genesis of this project.
+
 
 # References
