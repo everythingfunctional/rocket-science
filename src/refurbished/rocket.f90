@@ -5,7 +5,8 @@ contains
   subroutine propwt(od, id, length, rhos, propmass, rocketmass)
     !! calculate weight of propellent
     implicit none
-    real(dp) id, od, length, rhos, propmass, rocketmass
+    real(dp), intent(in) :: id, od, length, rhos
+    real(dp), intent(out) :: propmass, rocketmass
 
     propmass = pi / 4 * (od**2 - id**2) * length * rhos
     rocketmass = 0.15 * propmass ! assume 85% propellant loading and 15% extra wt of rocket
@@ -13,7 +14,8 @@ contains
 
   subroutine burnrate(rref, p, pref, n, dt, r, db)
     implicit none
-    real(dp) rref, p, pref, n, dt, r, db
+    real(dp), intent(in) :: rref, p, pref, n, dt
+    real(dp), intent(out) :: r, db
 
     r = rref * (p/pref)**n ! calculate burn rate
     db = db + r*dt ! calculate incremental burn distance
@@ -22,7 +24,9 @@ contains
   subroutine calcsurf(id, db, length, od, dt, vol, surf, r)
     ! cylinder burning from id outward and from both ends along the length
     implicit none
-    real(dp) id, db, length, od, dt, vol, surf, r
+    real(dp), intent(in) :: id, db, length, od, dt
+    real(dp), intent(inout) :: vol
+    real(dp), intent(out) :: surf, r
 
     surf = pi * (id + 2.0d0*db) * (length - 2.0d0*db) + pi * (od**2.0d0 - (id + 2.0*db)**2.0d0) * 0.5
 
@@ -36,7 +40,8 @@ contains
 
   subroutine calmdotgen(rhos, r, surf, cp, Tflame, mdotgen, edotgen)
     implicit none
-    real(dp) rhos, r, surf, cp, Tflame, mdotgen, edotgen
+    real(dp), intent(in) :: rhos, r, surf, cp, Tflame
+    real(dp), intent(out) :: mdotgen, edotgen
 
     mdotgen = rhos * r * surf
     edotgen = mdotgen * cp * Tflame
@@ -45,7 +50,8 @@ contains
   subroutine massflow(p, pamb, area, t, g, rgas, cp, dsigng, mdotos, edotos)
     implicit none
 
-    real(dp) p, pamb, area, t, g, rgas, cp, dsigng, mdotos, edotos
+    real(dp), intent(in) :: p, pamb, area, t, g, rgas, cp
+    real(dp), intent(out) :: dsigng, mdotos, edotos
 
     real(dp) :: mdtx, engyx
     real(dp) :: tx, gx, rx, px, cpx, pcrit, facx, term1, term2, pratio, cstar, ax, hx
@@ -96,7 +102,8 @@ contains
 
   subroutine addmass(mdotos, edotos, mdotgen, edotgen, dt, mcham, echam)
     implicit none
-    real(dp) mdotos, edotos, mdotgen, edotgen, dt, mcham, echam
+    real(dp), intent(in) :: mdotos, edotos, mdotgen, edotgen, dt
+    real(dp), intent(inout) :: mcham, echam
 
     mcham = mcham + (mdotgen - mdotos) * dt
     echam = echam + (edotgen - edotos) * dt
@@ -104,21 +111,24 @@ contains
 
   subroutine calct(echam, mcham, cv, t)
     implicit none
-     real(dp) echam, mcham, cv, t
+    real(dp), intent(in) :: echam, mcham, cv
+    real(dp), intent(out) :: t
 
     t = echam / mcham / cv
   end subroutine
 
   subroutine calcp(mcham, rgas, t, vol, p)
     implicit none
-    real(dp) mcham, rgas, t, vol, p
+    real(dp), intent(in) :: mcham, rgas, t, vol
+    real(dp), intent(out) :: p
 
     p = mcham * rgas * t / vol
   end subroutine
 
   subroutine calcthrust(p, pamb, area, cf, altitude, vel, thrust, den, drag, netthrust)
     implicit none
-    real(dp) p, pamb, area, cf, altitude, vel, thrust, den, drag, netthrust
+    real(dp), intent(in) :: p, pamb, area, cf, altitude, vel
+    real(dp), intent(out) :: thrust, den, drag, netthrust
 
     thrust = (p - pamb) * area * cf ! correction to thrust (actual vs vacuum thrust)
     den = rhob * exp(-gravity * mwair * altitude / RU / tamb)
@@ -128,7 +138,8 @@ contains
 
   subroutine height (mdotgen, netthrust, rocketmass, mcham, gravity, dt, vel, altitude, propmass, accel)
     implicit none
-     real(dp) mdotgen, netthrust, rocketmass, mcham, gravity, dt, vel, altitude, propmass, accel
+    real(dp), intent(in) :: mdotgen, netthrust, rocketmass, mcham, gravity, dt
+    real(dp), intent(out) :: vel, altitude, propmass, accel
 
     propmass = propmass - mdotgen*dt ! incremental change in propellant mass
     accel = netthrust / (propmass + rocketmass + mcham) - gravity
