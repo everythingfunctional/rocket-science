@@ -194,58 +194,59 @@ contains
     ! into the tube/chamber and only the inner diameter burns when ignited.
  
     block 
-    real(dp) vol, db, thrust, mdotos, time, propmass, drag, netthrust, accel, vel, altitude, rocketmass
+      real(dp) vol, db, thrust, mdotos, time, propmass, drag, netthrust, accel, vel, altitude, rocketmass
    
-    vol = 1.
-    db = 0.
-    thrust = 0.
-    mdotos = 0.
-    time = 0.; propmass = 0.; drag = 0.; netthrust = 0.
-    accel = 0.; vel = 0.; altitude = 0.; rocketmass = 0.
+      vol = 1.
+      db = 0.
+      thrust = 0.
+      mdotos = 0.
+      time = 0.; propmass = 0.; drag = 0.; netthrust = 0.
+      accel = 0.; vel = 0.; altitude = 0.; rocketmass = 0.
 
-    ! propellant burn rate information
-    psipa = 6894.76d0 ! pascals per psi (constant)
-    pref = 3000d0 * psipa ! reference pressure (constant)
+      ! propellant burn rate information
+      psipa = 6894.76d0 ! pascals per psi (constant)
+      pref = 3000d0 * psipa ! reference pressure (constant)
 
-    nsteps=nint(tmax/dt) ! number of time steps
+      nsteps=nint(tmax/dt) ! number of time steps
 
-    ! preallocate an output file for simulation infomration
-    allocate(output(0:nsteps,11))
+      ! preallocate an output file for simulation infomration
+      allocate(output(0:nsteps,11))
 
-    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!11
+      !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!11
 
-    !! now begin calculating and initializing
-    ! gas variables
-    rgas = ru / mw
-    cv = cp - rgas
-    g = cp / cv
+      !! now begin calculating and initializing
+      ! gas variables
+      rgas = ru / mw
+      cv = cp - rgas
+      g = cp / cv
 
-    area = pi / 4d0 * dia**2.0d0 ! nozzle area
+      area = pi / 4d0 * dia**2.0d0 ! nozzle area
 
-    pamb = 101325d0 ! atmospheric pressure
+      pamb = 101325d0 ! atmospheric pressure
 
-    ! calculate initial mass and energy in the chamber
-    mcham = p * vol / rgas / t ! use ideal gas law to determine mass in chamber
-    echam = mcham * cv * t ! initial internal energy in chamber
+      ! calculate initial mass and energy in the chamber
+      mcham = p * vol / rgas / t ! use ideal gas law to determine mass in chamber
+      echam = mcham * cv * t ! initial internal energy in chamber
 
-    output(0,:) = [time, p, t, mdotos, thrust, drag, netthrust, vol, accel, vel, altitude]
+      output(0,:) = [time, p, t, mdotos, thrust, drag, netthrust, vol, accel, vel, altitude]
 
-    call propwt(od, id, length, rhos, propmass, rocketmass)
-    do i=1,nsteps
-      call burnrate(rref, p, pref, n, dt, r, db)
-      call calcsurf(id, db, length, od, dt, vol, surf, r)
-      call calmdotgen(rhos, r, surf, cp, Tflame, mdotgen, edotgen) 
-        ! [mdot,engy,dsign] = massflow(p1,pamb,t1,tamb,cp,cp,rgas,rgas,g,g,area)
-      call massflow(p, pamb, area, t, g, rgas, cp, dsigng, mdotos, edotos)
-      call addmass(mdotos, edotos, mdotgen, edotgen, dt, mcham, echam) 
-      call calct(echam, mcham, cv, t)
-      call calcp(mcham, rgas, t, vol, p)
-      call calcthrust(p, pamb, area, cf, mwair, altitude, cd, vel, surfrocket, thrust, den, drag, netthrust)
-      call height (mdotgen, netthrust, rocketmass, mcham, gravity, dt, vel, altitude, propmass, accel)
-      time = time + dt
-      output(i,:) = [time, p, t, mdotos, thrust, drag, netthrust, vol, accel, vel, altitude]
-    end do
+      call propwt(od, id, length, rhos, propmass, rocketmass)
+      do i=1,nsteps
+        call burnrate(rref, p, pref, n, dt, r, db)
+        call calcsurf(id, db, length, od, dt, vol, surf, r)
+        call calmdotgen(rhos, r, surf, cp, Tflame, mdotgen, edotgen) 
+          ! [mdot,engy,dsign] = massflow(p1,pamb,t1,tamb,cp,cp,rgas,rgas,g,g,area)
+        call massflow(p, pamb, area, t, g, rgas, cp, dsigng, mdotos, edotos)
+        call addmass(mdotos, edotos, mdotgen, edotgen, dt, mcham, echam) 
+        call calct(echam, mcham, cv, t)
+        call calcp(mcham, rgas, t, vol, p)
+        call calcthrust(p, pamb, area, cf, mwair, altitude, cd, vel, surfrocket, thrust, den, drag, netthrust)
+        call height (mdotgen, netthrust, rocketmass, mcham, gravity, dt, vel, altitude, propmass, accel)
+        time = time + dt
+        output(i,:) = [time, p, t, mdotos, thrust, drag, netthrust, vol, accel, vel, altitude]
+      end do
     end block
+
     rocket = output
   end function
 end module
