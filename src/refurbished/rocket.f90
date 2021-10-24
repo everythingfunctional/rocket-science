@@ -1,5 +1,5 @@
 module refurbished
-  use refurbished_mod1, only : pi, dp, tamb, RU, gravity, rhob
+  use refurbished_mod1, only : pi, dp, tamb, RU, gravity, rhob, cd, mwair, surfrocket
   implicit none
 contains
   subroutine propwt(od, id, length, rhos, propmass, rocketmass)
@@ -116,9 +116,9 @@ contains
     p = mcham * rgas * t / vol
   end subroutine
 
-  subroutine calcthrust(p, pamb, area, cf, mwair, altitude, cd, vel, surfrocket, thrust, den, drag, netthrust)
+  subroutine calcthrust(p, pamb, area, cf, altitude, vel, thrust, den, drag, netthrust)
     implicit none
-    real(dp) p, pamb, area, cf, mwair, altitude, cd, vel, surfrocket, thrust, den, drag, netthrust
+    real(dp) p, pamb, area, cf, altitude, vel, thrust, den, drag, netthrust
 
     thrust = (p - pamb) * area * cf ! correction to thrust (actual vs vacuum thrust)
     den = rhob * exp(-gravity * mwair * altitude / RU / tamb)
@@ -158,10 +158,9 @@ contains
     !! what happens to thrust at low pressures, i.e. shock in the nozzle
 
     use refurbished_mod1, only : &
-      dp, output, area, Cf, Cp, Cv, dia, dt, echam, g, i, &
+      dp, area, Cf, Cp, Cv, dia, dt, echam, g, i, &
       id, length, mcham, mw, n, nsteps, od, p, Pamb, pi, pref, psipa, &
-      Rgas, rhos, rref, Ru, T, Tflame, tmax, &
-      r, surf, mdotgen, edotgen, dsigng, edotos, cd, den, mwair, surfrocket
+      Rgas, rhos, rref, Ru, T, Tflame, tmax
     implicit none
 
     real(dp), intent(in) :: dt_, t_max_
@@ -194,7 +193,9 @@ contains
     ! into the tube/chamber and only the inner diameter burns when ignited.
  
     block 
+      real(dp) r, surf, mdotgen, edotgen, dsigng, edotos, den
       real(dp) vol, db, thrust, mdotos, time, propmass, drag, netthrust, accel, vel, altitude, rocketmass
+      real(dp), allocatable :: output(:,:)
    
       vol = 1.
       db = 0.
@@ -240,13 +241,12 @@ contains
         call addmass(mdotos, edotos, mdotgen, edotgen, dt, mcham, echam) 
         call calct(echam, mcham, cv, t)
         call calcp(mcham, rgas, t, vol, p)
-        call calcthrust(p, pamb, area, cf, mwair, altitude, cd, vel, surfrocket, thrust, den, drag, netthrust)
+        call calcthrust(p, pamb, area, cf, altitude, vel, thrust, den, drag, netthrust)
         call height (mdotgen, netthrust, rocketmass, mcham, gravity, dt, vel, altitude, propmass, accel)
         time = time + dt
         output(i,:) = [time, p, t, mdotos, thrust, drag, netthrust, vol, accel, vel, altitude]
       end do
+      rocket = output
     end block
-
-    rocket = output
   end function
 end module
