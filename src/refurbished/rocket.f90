@@ -158,10 +158,10 @@ contains
     !! what happens to thrust at low pressures, i.e. shock in the nozzle
 
     use refurbished_mod1, only : &
-      dp, output, accel, altitude, area, Cf, Cp, Cv, dia, drag, dt, echam, g, i, &
-      id, length, mcham, mdotos, mw, n, netthrust, nsteps, od, p, Pamb, pi, pref, psipa, &
-      Rgas, rhos, rref, Ru, T, Tflame, thrust, time, tmax, vel, vol, &
-      propmass, rocketmass, r, db, surf, mdotgen, edotgen, dsigng, edotos, cd, den, mwair, surfrocket
+      dp, output, area, Cf, Cp, Cv, dia, dt, echam, g, i, &
+      id, length, mcham, mw, n, nsteps, od, p, Pamb, pi, pref, psipa, &
+      Rgas, rhos, rref, Ru, T, Tflame, tmax, &
+      r, surf, mdotgen, edotgen, dsigng, edotos, cd, den, mwair, surfrocket
     implicit none
 
     real(dp), intent(in) :: dt_, t_max_
@@ -171,13 +171,6 @@ contains
     real(dp), intent(in) :: id_, od_, length_, rho_solid_
     real(dp), intent(in) :: dia_, C_f_
     real(dp), allocatable :: rocket(:,:)
-
-    vol = 1.
-    db = 0.
-    thrust = 0.
-    mdotos = 0.
-    time = 0.; propmass = 0.; drag = 0.; netthrust = 0.
-    accel = 0.; vel = 0.; altitude = 0.; rocketmass = 0.
 
     dt = dt_
     tmax = t_max_
@@ -199,6 +192,16 @@ contains
     ! the other end is considered inhibited.
     ! outer diameter is inhibited because this is a cast propellent: it was poured
     ! into the tube/chamber and only the inner diameter burns when ignited.
+ 
+    block 
+    real(dp) vol, db, thrust, mdotos, time, propmass, drag, netthrust, accel, vel, altitude, rocketmass
+   
+    vol = 1.
+    db = 0.
+    thrust = 0.
+    mdotos = 0.
+    time = 0.; propmass = 0.; drag = 0.; netthrust = 0.
+    accel = 0.; vel = 0.; altitude = 0.; rocketmass = 0.
 
     ! propellant burn rate information
     psipa = 6894.76d0 ! pascals per psi (constant)
@@ -242,6 +245,7 @@ contains
       time = time + dt
       output(i,:) = [time, p, t, mdotos, thrust, drag, netthrust, vol, accel, vel, altitude]
     end do
+    end block
     rocket = output
   end function
 end module
