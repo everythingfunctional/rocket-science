@@ -1,5 +1,5 @@
 module refurbished
-  use refurbished_mod1, only : pi, dp, tamb, RU, gravity, rhob, cd, mwair, surfrocket
+  use refurbished_mod1, only : pi, dp, tamb, Ru, gravity, rhob, cd, mwair, surfrocket
   implicit none
 contains
   subroutine propwt(od, id, length, rhos, propmass, rocketmass)
@@ -158,9 +158,8 @@ contains
     !! what happens to thrust at low pressures, i.e. shock in the nozzle
 
     use refurbished_mod1, only : &
-      dp, area, Cf, Cp, Cv, dia, dt, echam, g, i, &
-      id, length, mcham, mw, n, nsteps, od, p, Pamb, pi, pref, psipa, &
-      Rgas, rhos, rref, Ru, T, Tflame, tmax
+      area, Cf, Cp, Cv, dia, dt, echam, g, i, &
+      id, length, mcham, mw, n, nsteps, od, p, Pamb, pref, psipa
     implicit none
 
     real(dp), intent(in) :: dt_, t_max_
@@ -170,6 +169,8 @@ contains
     real(dp), intent(in) :: id_, od_, length_, rho_solid_
     real(dp), intent(in) :: dia_, C_f_
     real(dp), allocatable :: rocket(:,:)
+
+    real(dp)  Rgas, rhos, rref, T, Tflame, tmax
 
     dt = dt_
     tmax = t_max_
@@ -217,7 +218,7 @@ contains
 
       !! now begin calculating and initializing
       ! gas variables
-      rgas = ru / mw
+      rgas = Ru / mw
       cv = cp - rgas
       g = cp / cv
 
