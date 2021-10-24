@@ -161,7 +161,7 @@ contains
       dp, output, accel, altitude, area, Cf, Cp, Cv, dia, drag, dt, echam, g, i, &
       id, length, mcham, mdotos, mw, n, netthrust, nsteps, od, p, Pamb, pi, pref, psipa, &
       Rgas, rhos, rref, Ru, T, Tflame, thrust, time, tmax, vel, vol, &
-      od, propmass, rocketmass, r, db, surf, mdotgen, edotgen, dsigng, edotos, cd, den, mwair, surfrocket
+      propmass, rocketmass, r, db, surf, mdotgen, edotgen, dsigng, edotos, cd, den, mwair, surfrocket
     implicit none
 
     real(dp), intent(in) :: dt_, t_max_
