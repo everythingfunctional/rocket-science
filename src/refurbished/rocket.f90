@@ -172,6 +172,13 @@ contains
     real(dp), intent(in) :: dia_, C_f_
     real(dp), allocatable :: rocket(:,:)
 
+    vol = 1.
+    db = 0.
+    thrust = 0.
+    mdotos = 0.
+    time = 0.; propmass = 0.; drag = 0.; netthrust = 0.
+    accel = 0.; vel = 0.; altitude = 0.; rocketmass = 0.
+
     dt = dt_
     tmax = t_max_
     cp = c_p_
