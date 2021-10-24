@@ -157,9 +157,6 @@ contains
     !! a thrust coefficient and ignoring the complexities of
     !! what happens to thrust at low pressures, i.e. shock in the nozzle
 
-    use refurbished_mod1, only : &
-      area, Cf, Cp, Cv, dia, dt, echam, g, i, &
-      id, length, mcham, mw, n, nsteps, od, p, Pamb, pref, psipa
     implicit none
 
     real(dp), intent(in) :: dt_, t_max_
@@ -170,6 +167,8 @@ contains
     real(dp), intent(in) :: dia_, C_f_
     real(dp), allocatable :: rocket(:,:)
 
+    real(dp)  area, Cf, Cp, Cv, dia, dt, echam, g, i
+    real(dp)  id, length, mcham, mw, n, nsteps, od, p, Pamb, pref, psipa
     real(dp)  Rgas, rhos, rref, T, Tflame, tmax
 
     dt = dt_
