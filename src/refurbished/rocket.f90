@@ -1,26 +1,28 @@
 module refurbished
+  use refurbished_mod1, only : pi, dp, tamb, RU, gravity, rhob
   implicit none
 contains
-  subroutine propwt ! calculate weight of propellent
-    use refurbished_mod1, only : pi, od, id, length, rhos, propmass, rocketmass
+  subroutine propwt(od, id, length, rhos, propmass, rocketmass)
+    !! calculate weight of propellent
     implicit none
+    real(dp) id, od, length, rhos, propmass, rocketmass
 
     propmass = pi / 4 * (od**2 - id**2) * length * rhos
     rocketmass = 0.15 * propmass ! assume 85% propellant loading and 15% extra wt of rocket
   end subroutine
 
-  subroutine burnrate
-    use refurbished_mod1, only : rref, p, pref, n, dt, r, db
+  subroutine burnrate(rref, p, pref, n, dt, r, db)
     implicit none
+    real(dp) rref, p, pref, n, dt, r, db
 
     r = rref * (p/pref)**n ! calculate burn rate
     db = db + r*dt ! calculate incremental burn distance
   end subroutine
 
-  subroutine calcsurf
+  subroutine calcsurf(id, db, length, od, dt, vol, surf, r)
     ! cylinder burning from id outward and from both ends along the length
-    use refurbished_mod1, only : pi, id, db, length, db, od, dt, vol, surf, r
     implicit none
+    real(dp) id, db, length, od, dt, vol, surf, r
 
     surf = pi * (id + 2.0d0*db) * (length - 2.0d0*db) + pi * (od**2.0d0 - (id + 2.0*db)**2.0d0) * 0.5
 
@@ -32,19 +34,18 @@ contains
     vol = vol + r*surf*dt ! increment the interior volume of the chamber a little
   end subroutine
 
-  subroutine calmdotgen
-    use refurbished_mod1, only : rhos, r, surf, cp, Tflame, mdotgen, edotgen
+  subroutine calmdotgen(rhos, r, surf, cp, Tflame, mdotgen, edotgen)
     implicit none
+    real(dp) rhos, r, surf, cp, Tflame, mdotgen, edotgen
 
     mdotgen = rhos * r * surf
     edotgen = mdotgen * cp * Tflame
   end subroutine
 
-  subroutine massflow
-    USE refurbished_mod1, only : &
-      dp, p, pamb, area, t, g, rgas, p, cp,tamb, &
-      dsigng, mdotos, edotos
+  subroutine massflow(p, pamb, area, t, g, rgas, cp, dsigng, mdotos, edotos)
     implicit none
+
+    real(dp) p, pamb, area, t, g, rgas, cp, dsigng, mdotos, edotos
 
     real(dp) :: mdtx, engyx
     real(dp) :: tx, gx, rx, px, cpx, pcrit, facx, term1, term2, pratio, cstar, ax, hx
@@ -93,39 +94,31 @@ contains
     edotos = engyx * dsigng ! exiting enthalpy
   end subroutine
 
-  subroutine addmass
-    use refurbished_mod1, only : &
-      mdotos, edotos, mdotgen, edotgen, dt, &
-      mcham, echam
+  subroutine addmass(mdotos, edotos, mdotgen, edotgen, dt, mcham, echam)
     implicit none
+    real(dp) mdotos, edotos, mdotgen, edotgen, dt, mcham, echam
 
     mcham = mcham + (mdotgen - mdotos) * dt
     echam = echam + (edotgen - edotos) * dt
   end subroutine
 
-  subroutine calct
-    use refurbished_mod1, only : &
-       echam, mcham, cv, &
-       t
+  subroutine calct(echam, mcham, cv, t)
     implicit none
+     real(dp) echam, mcham, cv, t
 
     t = echam / mcham / cv
   end subroutine
 
-  subroutine calcp
-    use refurbished_mod1, only : &
-      mcham, rgas, t, vol, &
-      p
+  subroutine calcp(mcham, rgas, t, vol, p)
     implicit none
+    real(dp) mcham, rgas, t, vol, p
 
     p = mcham * rgas * t / vol
   end subroutine
 
-  subroutine calcthrust
-    use refurbished_mod1, only : &
-      p, pamb, area, cf, rhob, gravity, mwair, altitude, RU, tamb, cd, vel, surfrocket, &
-      thrust, den, drag, netthrust
+  subroutine calcthrust(p, pamb, area, cf, mwair, altitude, cd, vel, surfrocket, thrust, den, drag, netthrust)
     implicit none
+    real(dp) p, pamb, area, cf, mwair, altitude, cd, vel, surfrocket, thrust, den, drag, netthrust
 
     thrust = (p - pamb) * area * cf ! correction to thrust (actual vs vacuum thrust)
     den = rhob * exp(-gravity * mwair * altitude / RU / tamb)
@@ -133,12 +126,9 @@ contains
     netthrust=thrust+drag
   end subroutine
 
-  subroutine height
-    use refurbished_mod1, only : &
-      mdotgen, netthrust, rocketmass, mcham, gravity, dt, &
-      vel, altitude, &
-      propmass, accel
+  subroutine height (mdotgen, netthrust, rocketmass, mcham, gravity, dt, vel, altitude, propmass, accel)
     implicit none
+     real(dp) mdotgen, netthrust, rocketmass, mcham, gravity, dt, vel, altitude, propmass, accel
 
     propmass = propmass - mdotgen*dt ! incremental change in propellant mass
     accel = netthrust / (propmass + rocketmass + mcham) - gravity
@@ -170,7 +160,8 @@ contains
     use refurbished_mod1, only : &
       dp, output, accel, altitude, area, Cf, Cp, Cv, dia, drag, dt, echam, g, i, &
       id, length, mcham, mdotos, mw, n, netthrust, nsteps, od, p, Pamb, pi, pref, psipa, &
-      Rgas, rhos, rref, Ru, T, Tflame, thrust, time, tmax, vel, vol
+      Rgas, rhos, rref, Ru, T, Tflame, thrust, time, tmax, vel, vol, &
+      od, propmass, rocketmass, r, db, surf, mdotgen, edotgen, dsigng, edotos, cd, den, mwair, surfrocket
     implicit none
 
     real(dp), intent(in) :: dt_, t_max_
@@ -229,17 +220,18 @@ contains
 
     output(0,:) = [time, p, t, mdotos, thrust, drag, netthrust, vol, accel, vel, altitude]
 
-    call propwt
+    call propwt(od, id, length, rhos, propmass, rocketmass)
     do i=1,nsteps
-      call burnrate
-      call calcsurf
-      call calmdotgen  ! [mdot,engy,dsign]= massflow(p1,pamb,t1,tamb,cp,cp,rgas,rgas,g,g,area)
-      call massflow
-      call addmass
-      call calct
-      call calcp
-      call calcthrust
-      call height
+      call burnrate(rref, p, pref, n, dt, r, db)
+      call calcsurf(id, db, length, od, dt, vol, surf, r)
+      call calmdotgen(rhos, r, surf, cp, Tflame, mdotgen, edotgen) 
+        ! [mdot,engy,dsign] = massflow(p1,pamb,t1,tamb,cp,cp,rgas,rgas,g,g,area)
+      call massflow(p, pamb, area, t, g, rgas, cp, dsigng, mdotos, edotos)
+      call addmass(mdotos, edotos, mdotgen, edotgen, dt, mcham, echam) 
+      call calct(echam, mcham, cv, t)
+      call calcp(mcham, rgas, t, vol, p)
+      call calcthrust(p, pamb, area, cf, mwair, altitude, cd, vel, surfrocket, thrust, den, drag, netthrust)
+      call height (mdotgen, netthrust, rocketmass, mcham, gravity, dt, vel, altitude, propmass, accel)
       time = time + dt
       output(i,:) = [time, p, t, mdotos, thrust, drag, netthrust, vol, accel, vel, altitude]
     end do
